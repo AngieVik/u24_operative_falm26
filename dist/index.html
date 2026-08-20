@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>U24 · Buscador de ubicaciones</title>
+<meta name="description" content="Buscador de ubicaciones del operativo sanitario U24.">
+<meta name="theme-color" content="#0F1011">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="U24">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+/* Roboto subconjuntada a los caracteres que la app puede mostrar.
+   Empotrada para que funcione sin cobertura y sin peticiones a terceros. */
+@font-face{font-family:Roboto;font-style:normal;font-weight:400;font-display:block;
+  src:url(data:font/woff2;base64,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) format('woff2')}
+@font-face{font-family:Roboto;font-style:normal;font-weight:500;font-display:block;
+  src:url(data:font/woff2;base64,d09GMgABAAAAABuAAA0AAAAANuQAABspAAIjVAAAAAAAAAAAAAAAAAAAAAAAAAAAGigblxYcgXoGYACBZArFFLYNATYCJAOEWguCMgAEIAWCRgcgG0Ito6Kk1fYR2V8k2IaYfQcbNoJFR9oxupwjgYaHPRu2XemT8u2SheDNbTf81RkhySzP/7vfkzs3yXszUwC27KqIUAGBJDS6jiyg7qowrQL854Cf299bQA82IkNyILCiNyoURlX5JY3IEQLahKIgCFYQLQyDgQnfK51VtzSm7hnBAWJ691D5R8IFYsmdyN6PbG/4QfaVA9Mh/PzZVtmWaSLjfxCEHHBgWfd7966DYnK3lRiHHNn7/6+zbHXnjxbQbzdAWHRYIlREJX7pa7T+/qsZyw7I0qInII33nNjL3gnYIYAyqba07EZjh4jqlOk2HRRNujJlmS2TVLEhLnOkYq8s4y1CW6ayjFlecP1vvq3l1oosMcYDR+dSXQO2B6BgKCFC2AmASJEOJcN+CATYxpANzCmnuXqD9M25aQkgfXtaZDxI3xOakQTSMID804B2961pScADNKDBQAGFrz8IkQIDHOd91+/6pn3pJp3c3W1gUatoda2xnWqsdq+Nt9nC1LZ+ValWUmX0kB7So+pQXanx6ndrvO769c1oYCL0BbBAw2bCUgViBwQaNx5ClKhQo06HLkNGjJkwY84SkRUqGgfOXNExePDiw5e/QHHiJUiUIVOWbDly5alTr0GjJs1aIEwyCM2MKHPqLIlDCIUHlAlsfoXjaqXY0Y4hk+Vqu0wiZxUFoMIeDLjHe2SRd1b4ZJm/k0mPQ4bMBLJkFWQ1UCNrgTrUo0E2Ac1oWbM1K9qwD/tLCN/0VXj6dL3gYJhkilnmmYfNMp+gM4zJtQjjlUgGeeS+PW4CBi9R1vC09qzdRCAEAayGODy4dIGJ48sz1ghoWdl4b3mJiRe+qxdw0c4XpowylKMClRskQBPG3eOpkoCcZRSACnu4m1aiOMLigQQkylpN1gH1aIhHxOcAXuSwURyosIc7alGHejS0xqAR5cWYL7zFOCxGZsWT1CSymdCyYTSBVMAhSSKPUII0wAYbbLDB5rRhIeQcQAEV9hEjKdyl2jOSfPGrvco6Qj0a1mxKima0KOTmwmgKuc4rX6ORmarmzSLrbNidRSi0fNHUCk31oGY1S6ARal4AA+any3OyJMnRu1ovc83bfrs4Iatq6uVeVct+bkWvEpg5Gm8jm7vFjPW1muIsMFKsvbv2dNrHd6vq+2bphrtA7jwsx2etzvdVHEKLwO7Xlu+nl/Ur9uKbWkJd18yJS+OcXtL6TWHhPAVyFLATSMD1zwq5wYvNgCz0+f2yvkWp3eDdb85ghM7viqsvdifgEfKo2YeldrBR2CVSuYzRI8j55lkamjvV5N81YGfC6WqwtFKg2U6bDeHNtzTBBbvegayc1Rb9NYIUzi9VtYRVq7DdZu59x0SQuzdzrlfYHF4bqak+lgc8iwAOcGcQr/Odflbq2LUbhr+40OXgY6NvZDMbiGPGHtA6kXkrW27H5jNYOHqW0zBeE3kYsDs7pZ0xsaycAf2Dg21Rz9Far5oCfcc6RCkVZHCjXoYdPW++G+HaN8kjHy2QcAechZ7YM7JsZ5uXooKHrgmshBAgFNzLQVOiBkOTIV4miAjskEmhOpLlsGU5rtzI8yBlPq9OhZ8AquIk0ZChga5GLWhQ9L0wCSbBZCDDQSjKJE2F8FQJoUZY2sRHh/jpkjgDQhiSGBMSZEp8zEiKOUmyIGGWJIBIQuyIC4m4kUkUVfGQACaiw2CA0NwUNyEmAl4OIvAnXgFbxomTSELSlmVkyIKS/XLwcuTBKlYKUaYSnyo1uNS6LYuq04BHYzVGkxZoqMn4TkYjMEJBlCCUODNMVHGJAorGQaHYUBIMFFCMiFB2EI4J8TElXmYkxvyiIjxshV+IiAphTwqhztAMU0BzByE8SYA3YfkQDz/C8yceAXMKihFLnA1GYKKMS6F4YCjGC+6gAcIAQ8+L0Wo/7F/ku8xxjqky1eGaMARH4j7xKpoim5M9vUPqNE/SimbnurnSeSRfusiNnrrE08Wx+UveQSkdGQz6PXdGh4KoYNKBOripwJfTvqNM3alctC+BR9kp8y0eJw0ajaMUqFBze6uyLJ1cpCoXDxqt43i/bcCC+d7cAdpBah7o34kqp5bc79OgSzz9fDcHsKN4sDpP2P+vQDihdAIdbBw/WcDBaBS63J0Uoghj/Ms+kiIMHBW7MBU5qUuPW/oNG/PSR7NWfLEBW0d2KEopyimq//uHg6kJEop95vcNeWrCO9OWsH2H30e2K0oqyq4q8kvTTR2S7nalS10EYXW9q+dfZ+c61cmOd/jjtOe0+7QjIOT2PpBzy/8vbxjwDqAdDbwJttwNduigzgLtHqCqOGAsNOSiKAXUTDRUyD4RmYM+OBfQUdsNAaqmvhiCPN9657gRYQlVH+BfAYmsGnrO/QeXHKdd+Iih0rbtrqbc6GIre8+wOrTbVPZoHbJKoZG+SlXbrdYOEK3QjoSeKbtkasy17Y5bO13dVjG6tiirm/Awec6BY8Ku6s4DzjattDbqxDaf8hyvcGrP9srbSYc7ubds9NyHjt6raukrJLVb7TmjzkpG9azB3EYogFokKZV46Ifn9lDLeTSaCZzyaKDsNBeOF2xiFTMSKDBagxEbNAMki4/n9Zbvx7fOGJtccqe2XHthODYrWbJRfeUqryd/cybT8vL4mfWiZZ/8AG76wyS6JRY0NQrv2IMNaMq9ML7rNjbsTpzc1vsDPcPJUDenI9FgV9idirbI1mhstsyIlxHx3UfADXAwoV2ekQg0l0u42bi5a8Haa3vPgVU8DktOtUFcEPBw5m7L+oEae+MKCUc3CA1cs3Jtzoxu5O2Z9JBOmZDJ8+pl9giXGcgi20lM6cxMPOBz0s+Z2wqFrMvHnFv9aJ549ACjyF8aBmTCu3pnDZlHgwQyLQ6Kj/oeFb7VNELBy0X7dtxaLs80IW/V4T9ALesz7l7NX3ES12V1FJidY/IwbyA5ZLgwv0J3Z83um5751XZz038g7ctsfivEdraeh/6St9b0FuQqxUHmIVvBG723XDR/uOnOkt5bTTtP3ztq1/NZ2aqEc93tpAOmv0PTHDE85utWl90y7z1tmSv3/bcW3RmsjZmtNaI7BIW6LKlnQXPWE6rGGU88npd8juV+n7R7VErUN0AWdFli522N20uOImHlljiXnGSlwuUHWvSnQ+vWjGTCrNZDgidcFTE52QMZ1fvK0jzCrVfn3bz296oNdmcpNpr7hlYkbnuFYlgnZl65Sx4O/xBWxoqzi/c3yPvThdU/I6ag5zMtXIzvTJiE01agQe+NotG5U5xVcDvoKtWkO8bnEu8ZnBl8k8tPo9dYct9sasZMTunpST0znQ9kikr15u9d5tuGIkA5gxZBk2tkGZjhKepOfR5KF437l76Z9NNn5snTxaFVRJjv5ryO1CkKjPlcCvkUUyI9vmraFevd+WPNhTYnrFrCeGTNI78J+vGlUixxvk4juG6/dzUjGtqW29wt+uDcfsoG02rr0OAdEipThZAnjhfDjygogMeUOadYnmst30LCq/nUVigHu1gERaUGyVSQQ99v3eHCEVeb51aNH7bBwR9PHZRzo1PRFUoLrpStozjid7Y1a6pPLrbClbhugz+AjTnLByhmsIv3LLf+XCvFr4r68u5QSP35bpKTTeoSJ3OlvBhUvIQ/XaPKnl/OATQwqq7b+YW3955LiZBtthhIFU9u33f78aXjWdk/ucJViS3j3u3v7d2+gaMvXT1RNrI7zc29M2QDj1P41m1+8JK6WepoBH1YdcHDjZ4GEVLgejoyOTDnmuH0h3cIueTXHEN02DO/tUDyWgxqAJIEfdX4q2RU0ciwyIgjmf336wbvoiO7h0qPGR047E/4yI8vKp6Glzn+TVlnP0z5FoRHTk4V3+JsMfmfJXFajAHFIeGERPcbDww+EOvwPv+XruMbJQTxvblk10d0Guv8b1RI82T152eNUU5S3Ipf0aPgkkxjH6jcovOKs6zZr5V71945vHn6l+Nh7IYvZOHgTCI5OluYOwq/tgI8LUelrJ7/um71y0JQ4XJw2vXg+WOj5WNYosXGcTz9+Hk3Y8b1+IXeGz++lnqfjv2ZeUvlzGcsLaaBi+pCLzjBamk7ziqg5x1jtbaeZF14RLeiBTnYk3db03dSg+ztucrCnU83I63AsQ6FvPGM/BWy2bxsPiO/wWOGtWMQ1cUmyPrEAYefMvz0CGEQ71lGfvy3fKNk/5Vsb6qvx2HvqxMDV88N9pXFJOz3sw1zkHC1zml+UUycIvu/2jad9zcyj/rsS1w2ddtp4ubjRHcN5zrNH5JflpEX52GdteBuo5EEwjfKJauOY3qhxFZY6fSVRcEoY4M9KT4vWDmiOS86UgINqhJe4MUG4OEmLHv26io+eglVWk/5n+jYfcs0i5anvMTL//NC4e1RIQM/04v6mTj/TlywZprpJVO/Ib7GmC4FlgSQO6iFHasdRZ+K2lbbCmH3ypWoqHc+9mWuWmSrvcE3wOvpgOAAVOdaOtEpFGe6paWzK4Xi5AoGmyyV13oPVBb1gKzisRqIUnj7mlshcHUXVuL1W4zE95gdH3OvpSbnXvu441Ned0pqdjcYYm8A9ganOSJ31OIZUIUHBl5eeIfOrvA55hyRUhZTkL8vk3MfEWK///Kuu+YctriKugvEqvY+2FuYVxD24VNocWLw+lXMzPAEMj7qm8RKMa7UTb6VMCoxOXFX4dkIJ6Q0OyG1JCeloDENTN5oUN7+udA90E3j0DJ/9hcGCULyyQcG9E+4Car6LkKmmsuzJa654VUZTrf4c4Fhtsz751lZ58oLy08W+/gZAiX108QPhZlj746lYPYz39anW81zyz7Gr81sEq6m5vS+eqI5WnN9b0d4UsHZ0twsVrpPGVOGApRMVpVqpDaoRqx9HwCy0Z4R4VcjI4TXw7lFPfGGQQYJ5+P6/kz09/+Z6ItLPB9kEG9U3E1QCknICdqdmBERlpAdHBSfraCTUFIRF19YkZBUWJCYmF8ApB1qzwvSzBelRIcJ2OE1flZsk73PyzH1B883taa/fQn+PhiYndKb6VYUKE9mXv+vi5mY3QEW7mdNQjP6+CmuM+YY02CLfv2E+cT0+4Vh5jDwiDLO2fR+/AkzvsYuxc6B3ZU5pIF2eJcf2Y6Z5tfX7ZjlDUwOcud3X8+TqZHuqoN9TH9PtayNEgvHCcnxXwvc8An2uuM6wRWnF4W7+IXfXc//9a/R9kX4MKbE92f3yX03rA5GHzja2sohPJJCI8anU4ttLxnv4MtjOOkn5M9hzwgx9fa7mcX040KEU2jN5n21jt/qJEXP60QwVEJ11yaMPwNBOZI1p1zJ4snyMsn0uiN//kUQOBtdnBB4syoOWNb6F/67T8PjT0RrFyjm3DJSHj74K7s8LnR0m4C2ik/JL1Udki4ozgeb7++3CC+kpQQEd2ZaZREpWSJYEWmxd1tCdVVHj1y9tL2Q8/4QX/vpmjZoAyzrqmp8jpWTVUK2PnQttMucG3uGmXdhj/250qJ95EaL75Bv353h/Y/zyMiJDudh51hwQ63qfdps2RAJTGQwGTuTpPl5sFLDvwgpda2tHZfQ7NBvQ8j18iyrw/I690G2pr5m65HRVnB98La4IM2GNzADlju39s/2PW5t9JnAy6ntovz48LDCMmB3ZZ69/gjf/krD1YvbxrLlKp26QE4ZHm4+s+giWCDe0ia7HffKpyWKpV+G3OBiqGTJdFZ0AI9K46VtzTO8vAaSNQcFBMBjfcvJ1TlPmM8rz/WU7JHPJ+yav9Xqsnnz37lTd/5tumb3kFMXbiDQJ2sk9/4b6W2LYp+8EP2mN7Rt1FJSmxhVcrwFPFixZ5pNNtjUnFP5WLlhhj/abxro/Xf+1G1D3XcHxlUMZYyKv3n4i59607znYcEOe6agycuFz5iampqY1NKqvWAxkeOfE3fX8pmN4JNOluzs0k8xru6t+Mqa/yqL0nw9D8Qf1t1wWHlztVfy1VoDJvLCyKHtuu7cqoqKeEC9XBgpH3m4sLUA1mKs7dE/O7fmPptu/Rn9O3rkWGNl9ZHGI+DxiqX4kLWpeJYlJr6RJiGaBkk+LNFNFgfvrY7vUl8Xw7L+4lQp+AjKS7yJg+CGA4hVsowEDQVVeyb6P2lYiFuKa0jbngkgiLHoLAZLUr78gOT/ZQJgIxZG5E8YqNrzDVufqZ8VCZRe7713Drj8z907CNwvAV5NVOrgmRgweav9+orW67H2w79rOPhg3wMQjYIBvWGcHmBEee1m9jiEnBq9WXcV6Vk56OATHMH0i/KxWS/5NjLazb55a7pZ0xePuuad617ytFz4BsnPDyjKhK+vzcbuxtfyZX4ELljXj83vmHhlvDEf4hPnOnnnUzzDtzp2uFVsb/QEWF7zz43CuM1jjvz/8caf77ZTqpPrdr8Hv85hOuYxvskF4a1h70tVy0PfggZfcnx5z8CCBVvs57zhoyuxWVocWKBPuCn1ablnjNPq6EqsvVtF2rNmsD3Ru8NluPjUdxGdKS2Q1htjz+qsRA/wFrSeKfGvtMdZ+kTk1uPzxwiYYOY+0Bap/lC9UX2282z0jZF7LAoNj7273+TqlegPYDcu/0GY/T6A4+4QmtZoRWuwccltqCh2is28NrTciubLhk9uxRTxxn0c0mzKLjdA+/xuOZaMnEVU02taHMqw6/Sf6s7Mup4T93s+3eTcTg3dBdyvvC0cHUkkdixUiMwQOURtG9WekegM55APlTp+/412/h6Qt5tISA6j3I6T5crUdlNt7rubDRI/4MTgTwJUODWMSLtu4XXiPFdKWsWj8EMMLR9T57MBqefu3nxzl3MvJ8Yj0CsmQMSBj3+CcyctOqCNyU2O5RgOcYE7P2tv/9HbNz7esTRMCQkAN7zYKq8V+wuVrYqxeSzXTgtbfoc9mgvGa6uwwWaxvQUva6r/4UG9SHt8BrIO8/0Ub0JCSc/YW4OfYux3lniRI+4x5Hef3kbTvMrSnzeKNWeMgZ0JEbDvOduxKZeGZyzZYj+nDMa64goFYpc0mtInyt2jKUsrm9G29PLM502gJhJx0aJ4fp24jM3VIOW6eBq5IvMS8EHNxIfeJHdF9XVzTeVUf9/I4sNmji0zjLnbz8PMNNC2TOa25vPGpsa1nqGpz3NVbHR4nZt7SIQTpKGf0AVNc4/VnI/v7OzkXue+33k/yGnFWPJHPxCwsbGFj44/vP3mNuduZpQ3LSid8piPQ4SdXUSJDOILiTPEv7jTWBwFC7tfEgkVxMdLC3MLQ2i4dm3m40zv9OrlVRCJkp6Ej4YLOon4qAm+SX2dihN+/YqBxmlT5+LKwDiF95l3Svp4AoPspN2VgyQGTbnnJz9MogH7ImuQcVDrk+1A0nG11/DbJDIwO7ojOjA7cuTYwV+jlgb10cou19NGwj1OB+gfePDCR9JinmcNGvS4g7+PgVgkC7juXeC7ggzlZMPUgd9jWgOcwyjfU8G6Ew/pKOpyXqN+zPLAr7eaLEK4BVdvzTT6lJKdKO8Z+roU12jvvuu9b5q8qmn2dkEBzhSvRJA6PWLu6EIisWP+e3eWcGYykvGXcgJ2wdeYQiUSqVRjYypZGlDIjw2NyVQrK0riGVEoeAZkCnCLPu/XExPVgz3Dlk506p9xsAD1LWlAd3TnBrn6RpzJP8lVS6RrGurRlNywwJ0hRj98a+j4yZtDh8eE3kcnTt56dG2JHuCd5e/DXgDdHyP8fE8Fzc6nfxNwgdM76vQzcQ722O/zD7S1C87YdfeWS6YfMDnI7V8Pe0ZnH9+qPPRwlz9ZOQ0kTYhTbmEVdQQvyj/QdvjwMT4QFCSArulmK39ySSOTzNC11zFTt9Bv404qagvxTPKnq/sDF1WphhnxzJ2c73rcuN6vDsSj4L/ghFHa+u8FG47xoPsgaIZXv6rmLCtPj/ZwaXzUrUWZIak2BPnyjBf9tFfNL1s79/yhQ3rf9A+6YuUThAC7yIFpFyXgNNgZ8gGI1Rmz06VmGCx1vqpWz+jQeWty6yG9r508rc4P1QDq7YL7B6xw+dM9aAgWOnAR2BWcJvlncP3KrlrheVG3GVaK2wrFuBbggOJ3gInxbZePG/T99pULKVx/USulJNa3bcrNbOchrW9ilH6msmZYe5LfTG19W8vNZuchrXpilBqmtXPb7Nt5CNOJUTFj+kG0NV+OQVDMUjdgb3UD9s4xRTFh3ZRd1023yprI9JHZnW7rCsiWD2kuxUXUOaVDJs126lQ6AXSqYyuERtcJKjJb3vaZ36NDDu6hq5QsKfpFir4UHIZVdkNnMO9uhsDo3uya7s3o3d4XOW93FuajABxN0tc7/RuKZ7PRjg5PBptepEa2eKySxv5urGzkfPZ7SxxK9XWRQRqA+mwBeD0bU6shCGCevJqtfjlzURtLxZ6D2sA4d7VZVdpmCLRP4vAMqCcxMiPpRzXzVvnce9URlUfeksJqlqXMFbl7z9fDJEih7bqn2VoA4hDuG0t7czB4W25JYAFJLR2gvTZ/awR1pxuZ7vhb5x95oP89N7njlmwWgBQie9/m5wLdyFdijkKAOuySc4fW7kwh6995pLYA4MvfNh0Afjonmvnr3varnad50oGtUAANrPdsBAB2qYURfwduARDy6/FmbxDR/gd1hMY6IHLMCp3TIqYc3xbIq0aU1guavY7syEJrA+TqJIeyVtN1oMbrYhkX4AF3mKIUWbBHzFsZXArK2hKDgWc78jQNbaV9gfWqxXN6IUxBbdNS1CR6d1RBRsVrpIubrJgiOzNS6U1+TfNxV0SX172ssip5VQgZ/3z0ivP4aHk5FoqmPsLKz2gK0xrTeMb33MtYBb8cwX4P034Eut5gNHzsGqUKhxH3Uemevgvvek1v1PIcqfJKQGEh6Vo9HwloWH7a1kiXN/4TOlq9W+P0cpS51iU8417Z/QeJuU55cFPoCwTclj3rOotCufZdlZ0eskpBVa8UXEekFtl/hZfUz8vuCyglo7Evaetv5U0tRxdDZe2BiHaHSReV2GWR5jkNo9zxcYHUuEtvVf1u8miDyaUpbFEscobAkL4R7uxsFxaKBCc2TDYCG4olk47wDOnt5sHOTOo9bz8fArxjmThv3En3/BYoYBUIDRlbgevAbl2EtOB1UXBy1kUzVnVRzG2Jhd4LrpfzHEWyFLnSxIoWI4MiY4aMDmsqcpDMNUoQuWEnScLpS1KGhD5PDZV+ICMlLlKaLJEi6PtCsjBGRqCIfqEUK1MiTkafH54gVJqPy0rUcIhhBeZ8hUzXgmRJ4UL/5jtYaG5dL48mDyxxIgAAAAA=) format('woff2')}
+@font-face{font-family:Roboto;font-style:normal;font-weight:700;font-display:block;
+  src:url(data:font/woff2;base64,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) format('woff2')}
+
+:root{
+  --bg:#0F1011;
+  --surface:#17181A;
+  --field:#1B1D1F;
+  --border:#2B2E31;
+  --rule:#212325;
+  --accent:#FFC72C;
+  --accent-soft:rgba(255,199,44,.12);
+  --accent-line:rgba(255,199,44,.30);
+  --text:#F2F3F4;
+  --muted:#9A9EA3;
+  --faint:#8E9398;
+  --pad:16px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Roboto,system-ui,sans-serif;
+  font-size:16px;line-height:1.25;
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.ico{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── Cabecera ─────────────────────────────────────────
+   Emblema, buscador y rótulo. Único bloque siempre en pantalla. */
+.head{
+  position:sticky;top:0;z-index:10;
+  background:var(--bg);
+  padding-top:env(safe-area-inset-top);
+  border-bottom:1px solid var(--border);
+}
+.bar{display:flex;align-items:center;gap:13px;padding:10px var(--pad) 12px}
+.bar .mark{flex:none;width:66px;height:66px;display:block}
+.stack{flex:1;min-width:0}
+/* Rótulo del operativo en curso. */
+.sub{
+  margin:6px 0 0;padding:0 3px;
+  font-size:12px;font-weight:500;letter-spacing:.04em;
+  color:var(--faint);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* ── Buscador ─────────────────────────────────────── */
+.field{
+  position:relative;display:flex;align-items:center;
+  background:var(--field);
+  border:1px solid var(--border);border-radius:12px;
+}
+.field:focus-within{border-color:var(--accent);background:var(--surface)}
+.field .lead{
+  position:absolute;left:14px;width:20px;height:20px;
+  color:var(--faint);pointer-events:none;
+}
+.field:focus-within .lead{color:var(--accent)}
+#q{
+  display:block;width:100%;height:54px;
+  padding:0 54px 0 44px;
+  background:none;border:0;outline:none;border-radius:12px;
+  font-family:inherit;font-size:19px;font-weight:500;color:var(--text);
+  letter-spacing:.01em;
+}
+#q::placeholder{color:var(--faint);font-weight:400}
+#clear{
+  position:absolute;right:3px;
+  width:48px;height:48px;display:none;place-items:center;
+  background:none;border:0;padding:0;color:var(--muted);cursor:pointer;
+}
+#clear .ico{width:19px;height:19px}
+#clear:active{color:var(--text)}
+body.has-query #clear{display:grid}
+
+/* El recuento no se pinta: durante un aviso no aporta. Se mantiene como
+   región activa para lectores de pantalla. */
+.sr{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+
+/* ── Lista ────────────────────────────────────────── */
+ul{list-style:none;margin:0;padding:0}
+
+/* La fila no es pulsable: solo lo es el botón de la derecha. Una fila-enlace
+   se activa sola al desplazar la lista con el dedo.
+
+   Sin líneas de separación: lo que agrupa las tres líneas de una ubicación es
+   la proximidad, 6,5 px de hueco óptico dentro del bloque contra 13,75 px
+   entre bloques. Cambiar una distancia obliga a recalcular la otra.
+
+   Sin relleno vertical, para que el botón ocupe la altura completa de la fila.
+   Sin selección de texto, porque al desplazar con el dedo el arrastre la
+   inicia y llena la pantalla de resaltes. */
+.row{
+  display:flex;align-items:center;gap:12px;
+  min-height:72px;padding:0 0 0 var(--pad);
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+}
+
+/* Ancho fijo, para que los nombres se alineen en columna con etiquetas tan
+   dispares como "3", "180–186" o "S/N". */
+.num{
+  flex:none;width:66px;
+  font-size:15px;font-weight:700;
+  font-variant-numeric:tabular-nums;letter-spacing:.02em;
+  color:var(--accent);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* Altura de línea fija en píxeles, no proporcional: el hueco que se ve es el
+   margen más el aire interno de cada caja, (altura de línea − tamaño) / 2, y
+   con valores proporcionales ese aire varía con cada tamaño de letra. Con
+   estos, los dos huecos miden 6,5 px exactos. */
+.txt{flex:1;min-width:0;display:block}
+.nom{
+  display:block;
+  font-size:16.5px;line-height:21px;font-weight:500;letter-spacing:.005em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.st{
+  display:block;margin-top:2.5px;
+  font-size:12.5px;line-height:16px;font-weight:400;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* Coordenadas a la vista, y copiables al tocarlas: cuando Google Maps no
+   carga son lo único que queda para dictar la posición por radio.
+   Los márgenes negativos compensan el relleno, que da un objetivo táctil de
+   32 px sobre un texto de 16: así la caja ocupa en el flujo lo mismo que una
+   línea de texto y el ritmo vertical no se altera. */
+.co{
+  display:block;
+  margin:-5.25px 0 -8px -8px;padding:8px;
+  background:none;border:0;border-radius:7px;
+  font-family:inherit;text-align:left;
+  font-size:12px;line-height:16px;font-weight:400;color:var(--faint);
+  font-variant-numeric:tabular-nums;letter-spacing:.02em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:100%;cursor:pointer;
+}
+.co:active{color:var(--text)}
+.co:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.co.done{color:var(--accent)}
+/* Botón de ubicación. Ocupa toda la altura de la fila y 64 px de ancho:
+   el objetivo real es mayor que la pastilla que se ve. */
+.go{
+  flex:none;width:64px;align-self:stretch;
+  display:grid;place-items:center;
+  color:var(--accent);text-decoration:none;
+}
+.pill{
+  display:grid;place-items:center;
+  width:40px;height:40px;border-radius:11px;
+  background:var(--accent-soft);border:1px solid var(--accent-line);
+}
+.pill .ico{width:19px;height:19px}
+
+/* La fila de calle se ve igual que las demás: lo que la distingue es su
+   segunda línea y el icono de recorrido del botón. */
+.go:active .pill{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.go:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+
+/* ── Separador de coincidencias aproximadas ───────────
+   Lo que hay debajo se parece a lo tecleado; no coincide con ello. */
+.sep{
+  padding:15px var(--pad) 7px;
+  font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);
+  background:var(--bg);
+}
+
+/* ── Sin resultados ───────────────────────────────── */
+.empty{padding:30px var(--pad);color:var(--muted);font-size:14px;line-height:1.45}
+.empty b{display:block;color:var(--text);font-size:16.5px;font-weight:500;margin-bottom:6px}
+.empty[hidden]{display:none}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (min-width:600px){
+  .bar,ul,.empty{max-width:600px;margin-inline:auto}
+}
+</style>
+</head>
+<body>
+
+<header class="head">
+  <div class="bar">
+    <svg class="mark" role="img" aria-label="Emblema U24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g style="display:inline"><path d="M891.03 86.35q-.12 0-.17.05c-.25.25-.35 2.93-.36 9.37v6.78l1.1-.38c1.62-.55 3.33-.83 5.8-.93l2.23-.09v-.72c0-1.37-.27-3.93-.56-5.37-.68-3.4-1.97-5.42-4.5-7.06-1.45-.95-3-1.66-3.54-1.65M98.94 90.01l.12 1.12c.06.6.11 4.24.11 8.07 0 3.85.07 6.95.16 6.95s.5-.12.93-.27c1.48-.53 3.26-.82 5.6-.92l2.37-.1-.12-1.7c-.35-5.03-1.37-7.92-3.61-10.3a8 8 0 0 0-2.57-1.91c-.79-.39-1.78-.76-2.21-.82zm806.29 23.66a19 19 0 0 0-2.85.08c-10.97 1.15-22.35 6.95-32.09 16.36-10.15 9.81-16.95 22-19.12 34.3a52 52 0 0 0-.36 10.96q1.35 11.5 9.3 19.86a45 45 0 0 0 18.75 11.5c.28.01.45-9.89.24-13.78-.28-5.17-1.11-9.24-2.39-11.66a27 27 0 0 0-1.87-2.84c-3.18-4.22-4.02-5.7-4.48-7.88-.84-3.97.37-9.29 3.18-13.95 4.25-7.04 11.93-13.33 19.44-15.9 2.1-.72 3.53-.97 5.52-.98 3.35 0 5.53.62 12.37 3.55 7.6 3.25 9.41 3.7 15.05 3.75 3.19.03 3.75 0 4.37-.28 1.52-.69 2.2-1.82 2.2-3.67.01-1.61-.5-3.43-2.05-7.24-2.15-5.3-3.73-8.07-6.56-11.59-5.2-6.46-11.99-10.27-18.65-10.59M113.7 126.04l-1.5.04c-5.37.12-14.73 4.26-22 9.7C79.8 143.6 72 154.25 70 163.38c-2.18 10.02 1.16 22.2 7.98 29.08.92.94 1.77 1.7 1.9 1.73h0c.24 0 .24-.54.02-2.3-.39-3.05-.56-3.45-3.14-7.3-3.5-5.2-4.64-7.8-5.26-11.8a27 27 0 0 1 1.7-13.37c2.04-5.15 5.15-9.65 9.73-14.11a42 42 0 0 1 11.41-8.08c6.09-2.9 11.47-3.6 17.64-2.25.87.19 1.65.34 1.74.34h0c.09-.05.1-.6.04-1.28a13 13 0 0 1 .56-4.67c.28-.88.28-.94-.16-2.12zm803.46 1q.22 0 .44.04c1.65.23 3.26 1.57 3.5 2.92.17 1.06-.45 2.24-1.52 2.9a4.1 4.1 0 0 1-5.5-1.18c-.4-.56-.5-.88-.5-1.66 0-.93.04-1.02.84-1.82a3.6 3.6 0 0 1 2.74-1.2m-18.07 26.37-1.11.15a14.4 14.4 0 0 0-5.9 2.29c-.7.47-.75.57-.96 1.79-.43 2.55-.08 6.98 1.15 14.8.33 2.1.66 4.3.73 4.91l.12 1.1h3.85v-3.84c0-4.78.17-6.77 1.05-12.24.8-4.95 1.07-6.98 1.07-8.14zm-792.29 3.3c-1.49 0-5.37 1.46-6.14 2.31-.29.32-.27.47.26 2.95.3 1.43.64 3.27.73 4.08.31 2.81.39 7.39.19 11.34-.64 12.8-.62 14.97.24 19.63.51 2.8 1.09 6.77 1.26 8.7h0c.11 1.25.32 1.72.51 1.15a399.4 399.4 0 0 0 1.69-30.95c.19-8.98.2-9.1 1.13-14.43.33-1.9.65-3.75.7-4.12l.09-.66zm786.43 24.21v2.5c0 1.56-.01 2.86-.03 3.42l-.18 3.8a100 100 0 0 0-.17 4.83c-.02 2.4 0 2.96.27 5.69a680 680 0 0 1 1.2 13.53l.1 1.35.03.03h0v0h.02a88.09 88.09 0 0 1 .2-2.14l.49-5.09a478 478 0 0 0 1.76-27.54l.02-.38h-1.85zm24.7 23.4-.07.02v0c-.05.09-.02 1.03.07 2.12l.18 2.01 1.89 1.98c2.27 2.36 3.26 3.72 4.17 5.69a14 14 0 0 1 1.26 4.47c0 .39.06.44.4.35.79-.2 1.95.21 2.51.88.3.34.6.63.7.63h0c.24-.16-.05-3.53-.42-4.98a20.6 20.6 0 0 0-8.46-11.96c-1.11-.76-1.93-1.2-2.21-1.21zM126.56 206v1.39c.01 2.33.08 2.46 2.34 4.69a31 31 0 0 1 2.93 3.29 13.8 13.8 0 0 1 1.51 13.09c-1.36 3.47-4.31 7.1-8.36 10.33-2.26 1.8-8.84 6-12.78 8.15-.65.36-1.19.72-1.2.82v0c0 .29.2.21 3.29-1.22 11.86-5.5 18-9.76 21.27-14.71a14 14 0 0 0 2.44-8.99 18 18 0 0 0-3.31-9.48 26 26 0 0 0-7.29-6.88zm799.37 17.42c-.33 0-.6.01-.6.03l-.06.46a18.5 18.5 0 0 1-3.72 8.3 27 27 0 0 1-7.72 6.84 64 64 0 0 1-6.84 3.54l-2.47 1.17-4.87 2.32a223 223 0 0 0-10.82 5.32 65 65 0 0 0-4.65 2.67v.03h0v0h0v0h0v0h.01l.7-.34a87 87 0 0 1 4.94-2.34c1.97-.88 2.42-1.08 3.48-1.6a223 223 0 0 1 8.62-3.9 219 219 0 0 0 8.56-3.87c4.37-2.11 7.8-4.18 10.55-6.36a28 28 0 0 0 5.27-5.4l.21-.3v-6.57zm-817.17 25.23-.32.16-3.49 1.76a178 178 0 0 0-7.24 3.73v0h0v.02h0v0h0v0h.01l.44-.2 3.55-1.7a253 253 0 0 1 6.61-3.08l.63-.28zm768.62 10.22c-.14 0-2.2 1.94-2.98 2.82-3 3.36-4.1 6.37-3.54 9.73.07.42.37 1.64.46 1.86q.04.1.07.13h.01c.02 0 .05-.51.07-1.14.05-2.13.33-3.86.93-5.7a18 18 0 0 1 4.37-7.03c.37-.37.64-.67.61-.67m-789.98 1.85c-.25.03-2.34 1.81-3.6 3.1-2.2 2.26-3.4 4.27-3.89 6.55-.18.84-.2 2.93-.03 3.85a15 15 0 0 0 1.7 4.86q.16.28.26.27h0v-.01h.01l.01-.05-.2-.62a14 14 0 0 1-.76-7.6c.61-3.2 2.33-6.1 5.47-9.25l1.06-1.08v0h0v0-.01h0v0h-.01 0zm813.9 254.03a9.17 9.17 0 0 0-6.53 3.23 14 14 0 0 0-1.58 2.26l-.14.26h0v.01h0v0h0v0l.04-.04.54-.62a16 16 0 0 1 4.48-3.55c1.48-.78 3.13-1.3 4.72-1.49l.24-.03h0v0h0v0-.01c-.04-.04-1.33-.05-1.76-.02m10.72 32.17-.23.17a29 29 0 0 1-3.87 2.5l-.04.04h0v0l-.02.16-.01.16v0h0v0h0l.27-.12a18 18 0 0 0 3.14-1.91c.16-.13.17-.14.24-.24.18-.24.53-.75.52-.76M99.57 582.54zc-.04.02-.14.14-.58.71-.55.72-.9 1.12-1.6 1.8a15 15 0 0 1-4.4 3.02c-.3.14-.55.27-.57.3v.02h0c.12.09 2.13-.08 2.75-.24 1.27-.31 2.31-1.29 3.31-3.08.4-.72 1.13-2.39 1.11-2.52h0v0h0v0zm31.36 26.19zl-4.93.77c-2.66.41-4.95.78-5.08.81a1 1 0 0 0-.25.1h0v.01h-.01 0v.03h0v0h0v.01q.04.03.3 0l3-.21 2.65-.19 3 1.8c1.65.99 3.01 1.8 3.03 1.8h.01v-.01h.01l.01-.04-.49-1.49-.82-2.43c-.29-.86-.33-.97-.41-.96zm-13.67 2.46-6.98 1.6-8.85 2.07a41 41 0 0 0-1.97.48l-.02.06v0h0v0h0c.02.02.98-.15 2.13-.38l2.22-.43c.12-.01.65.3 3.82 2.29l3.68 2.3 3-3.99c1.65-2.2 2.99-3.99 2.97-4m-20.15 4.66-1.6.37h-.02 0v.01h0v0h0v0h0l1.63-.31h0v0zm-6.2 1.51c-.01-.02-1.2.24-2.65.58l-2.62.61.15.6.6 2.52c.25 1.11.47 1.92.5 1.9.09-.02 4.06-6.17 4.02-6.21m759.33 23.74-.11.5 4.32 1.03h0l4.33 1.04h.01v0-.24l.04-.4.02-.09-5.95-1.28-1.52-.32-.95-.2zm10.93 2.34v.8l11.95 2.87 11.95 2.87v-.77l-9.67-2.4-9.68-2.39-2.27-.49zm23.91.19v.4zm3.18 6.36v.75l3.85.93h0l3.87.93h0v0h0v0-.01 0l.19-.64-3.96-.98zm-758.58 19.35c-.02-.01-26.78 10.08-26.82 10.12h0v0c0 .03.08.3.2.64l.23.63.22-.1a190 190 0 0 0 3.65-1.63l2.67-1.23a37 37 0 0 0 1.75-.85c1.04-.56 1.26-.67 1.8-.92 1.9-.89 3.52-1.31 5.43-1.43 2.02-.12 4.24.34 6.08 1.26.15.08.29.14.32.13h0v0h.01l.1-.26a12 12 0 0 1 1.91-3.82 15 15 0 0 1 2.1-2.22zm.98 24.9zl-.22.4a32 32 0 0 1-2.8 4.5l-.29.4v.03h.04l6.02-2.26v0h0l-.28-.3c-.8-.75-1.56-1.6-2.22-2.46zm25.52 1.82h-.01a16 16 0 0 1-1.7 1.75 16 16 0 0 1-3.28 2.22l-.14.07v0h0v0h0l.29-.1c1.24-.5 2.36-1.17 3.26-1.97.24-.21.52-.5.72-.72a6 6 0 0 0 .8-1.11zm698.37 5.67c-.2-.06-5.49 3.27-5.49 3.45 0 .2.16.26 4.82 1.83 1.89.63 3.5 1.16 3.58 1.17.16.01-2.73-6.4-2.91-6.45m-732.31 3.92c-.02-.02-1.18 1.16-3.66 3.68a44 44 0 0 0-2.35 2.54 10 10 0 0 0-1.32 1.85 11 11 0 0 0 .5 1.66v0h0v.01h.01c.06-.03.25-.25.71-.8 2.97-3.57 4.64-5.95 5.84-8.35.16-.32.28-.58.27-.6m725.16 31.22c-.02.02.48 1.18 1.1 2.58l1.26 2.84c.07.17.19.27.27.23.42-.16 8.72-4.25 8.69-4.28-.11-.1-11.24-1.45-11.32-1.37m-704.66 12.68c-.02-.02-.5.62-2.17 2.9l-2.13 2.96 4.11 5.9h0v0h.01q.03.02.2-.01l3.35-.69c2.22-.45 3.18-.65 3.17-.67zm697.75 10.93-2.46.35c-1.34.2-2.47.38-2.5.41-.07.07-.06.07 3.01 3.55 1.23 1.39 2.29 2.52 2.35 2.52s.11-.05.11-.12c0-.28-.38-5.49-.44-6.08zm-48.73 10.7c-.18 0-8.46 9.55-8.46 9.76s.12.2 4.97-.4l4.4-.53.48.37c.26.2.5.3.54.2.1-.3-1.77-9.4-1.93-9.4m-588.53 4.27-.02.01a778.62 778.62 0 0 0-20.73 18.1 2077 2077 0 0 0-10.39 9.27v.01l.01.01h.03c.02 0 .99-.7 2.15-1.54l2.1-1.53 13-11.61c12.91-11.56 12.98-11.62 13.41-12.12.32-.38.45-.54.46-.58v-.01h0v0h0zm599.7 12zv0h0v0c0 .02.75.63 1.66 1.37h0c.9.75 1.66 1.35 1.66 1.35l.1-.1.13-.13c.02-.02-.12-.11-1.75-1.25l-1.79-1.24h0v0zm5.51 4.23-.33.01h0v0h0v0h0c0 .02 3.57 2.93 7.93 6.49l7.92 6.47.11-.13.1-.14v0h0l-7.7-6.37-7.68-6.33zM209.82 805.2c-.01-.01-.19.15-.7.66a29 29 0 0 0-2.57 2.94 25 25 0 0 0-4.44 8.97l-.22.93v0h0v0h0l.01.01h0l.15-.36q.51-1.48 1.14-2.9a40 40 0 0 1 6.36-9.92zm552.45 2.91zl-.01.01h0v.01h-.01v.01c0 .02.34.42.74.9l2.78 3.24L787.76 838c.67.8.91 1.06.97 1.08h.01v0h0v0h.01v0c0-.02-4.82-6.34-5.32-6.98l-2.83-3.3-4.63-5.38-6.25-7.27-4.24-4.92-1.58-1.56c-.87-.85-1.6-1.55-1.62-1.55zm-51.07 29.78c-.32 0-1.05.26-1.64.57l-1.06.55 2.35 3.5a98 98 0 0 1 4.28 7.12 293 293 0 0 0 2.53 4.68c.34.59.69 1.05.79 1.03s2.07-1.98 4.39-4.34l4.2-4.31-4.08-2.33c-2.25-1.29-5.1-2.97-6.33-3.75q-4.38-2.75-5.43-2.72m42.07 5.5c-.12.02-2.84 3.3-6.72 8.13l-1.08 1.34 2.83 1.42c1.55.79 5.01 2.47 7.69 3.75 2.67 1.27 4.99 2.24 5.14 2.14s.56-.39.9-.66l.63-.49-2.15-3.76c-2.98-5.18-7.06-11.89-7.24-11.87m-76.91 10.42-2.59.85c-2.95.96-3.02 1.05-3.02 3.63 0 1.2.08 1.6.31 1.52.17-.07 2.08-.66 4.24-1.31l3.93-1.2-.46-.65c-.26-.36-.9-1.14-1.44-1.74zM491 857.75v19.93l-6.28 3.79c-3.45 2.08-6.48 3.78-6.73 3.78-.4 0-5.92-2.9-14.78-7.78l-3.04-1.67-2.96 5.08a75 75 0 0 0-3.11 5.67c-.08.33 3.9 3.15 8.85 6.27l9 5.68.03 7.57.02 7.58-8.37 5.12a557 557 0 0 0-8.61 5.33c-.31.26 5.13 10.63 5.57 10.64.19 0 4.09-2.02 8.66-4.49s8.51-4.5 8.75-4.5 3.2 1.64 6.59 3.64l6.16 3.64.13 10.61.14 10.61h12.48v-20.76l6.45-3.87c3.55-2.13 6.67-3.87 6.92-3.87s4.38 2.11 9.16 4.7l8.7 4.69 1.53-2.57a343 343 0 0 0 3.16-5.42l1.62-2.85-8.9-5.27-8.89-5.26-2.13-3.75c-1.16-2.06-2.12-4.1-2.12-4.53s1-2.52 2.22-4.64l2.23-3.85 7.92-4.62c4.36-2.54 8.3-4.9 8.77-5.25.77-.57.56-1.12-2.27-5.96l-3.12-5.32-8.7 4.7c-4.8 2.58-8.92 4.7-9.18 4.7s-3.36-1.74-6.92-3.87l-6.45-3.87v-19.76h-6.25zm204.04 19.93zc-.14.08-.53 1.1-.9 2.37l-.84 2.78q-.14.36.35.2c.3-.08 1.81.54 4.1 1.71 3.7 1.89 4 2.01 4 1.69 0-.25-6.45-8.67-6.7-8.75zm-197.8 1.41c1.73.02 4.45 1.33 10.65 4.96 6.34 3.7 9.48 6.01 9.87 7.24.22.7-.76 2.96-3.22 7.42l-3.54 6.42.78 1.87a84 84 0 0 0 3.22 6.18c3.4 6.01 3.49 6.6 1.3 8.4-2.13 1.76-8.03 5.29-13.55 8.12-2.2 1.12-4.68 2.05-5.51 2.05-1.5 0-8.42-3.6-17.6-9.17l-4.39-2.66.16-13.96c.1-7.68.27-14.31.38-14.75.21-.74 17.37-10.8 20.4-11.94a3 3 0 0 1 1.06-.18m.17 3.03c-2.26 0-18.55 9.95-19 11.6-.22.8-.4 6.73-.4 13.15l-.02 11.68 9.02 5.14c7.27 4.15 9.42 5.07 11.1 4.76 2.06-.39 11.97-5.67 15.13-8.06l1.66-1.26-3.25-6.47c-1.79-3.56-3.25-6.92-3.25-7.47s1.47-3.75 3.26-7.12c1.8-3.37 3.15-6.22 3-6.33-4.18-3.28-15.57-9.62-17.25-9.62m172.7 5.25-.15 1.69c-.09.93-.17 2.9-.19 4.38-.01 1.45.07 2.58.19 2.68h.01c.14-.01 1.11-1.22 2.17-2.68a33 33 0 0 1 2.2-2.86c.32-.22.47-.09-2.1-1.8zm-29.94 4.7v0l.04.05c.38.4.55.6.8.89a16 16 0 0 1 2.42 3.81l.15.35h0v.01h.01v0h0v0h0v0h0v0a10 10 0 0 0-1.6-3.2 11 11 0 0 0-1.82-1.9zm-263.25.34zl.14.29a15 15 0 0 1 1.26 3.67v0h.01v0h0v0h.01v0h0v0c0-.05-.07-.47-.12-.69a11 11 0 0 0-1.2-3.13l-.09-.14h0z" style="opacity:1;fill:#ffff02;fill-opacity:1;stroke:#ffff02;stroke-width:4.75;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:0;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers" transform="scale(.1)"/><path d="m563.56 126.08-3.35.44c-1.85.24-32.08.63-67.18.85l-63.82.4v33.8h40.7l4.41 4.45 4.4 4.45-.02 42.45c-.02 28.82.23 43.69.77 46.3 1.47 7.08 5 11.31 11.58 13.85 8.42 3.24 18.47-1.65 21.3-10.38 1.16-3.53 1.3-7.97 1.54-48.08l.26-44.2 4.36-4.42 4.36-4.42h40.7v-17.75zm117.72 75.25c-.08-.11-6.8 3.87-14.93 8.84s-30.29 18.41-49.24 29.88c-31.76 19.2-34.44 20.98-34.28 22.63.17 1.68-.05 1.8-3.86 2.14-2.22.2-4.43.75-4.91 1.23-.48.49-1.58 4.01-2.44 7.85-8.05 35.9-34.98 53.14-80.5 51.52-21.63-.77-35.93-5.12-48.8-14.82-13.19-9.94-20.9-24.74-23.39-44.9-.5-4.04-.5-4.05-2.46-3-1.43.76-5-1.34-67.87-39.76-14.97-9.15-28.83-17.45-30.8-18.44l-3.59-1.8-19.36 34.4c-10.66 18.94-24.19 42.86-30.08 53.17s-11.24 19.75-11.88 21l-1.16 2.26 4.42 3.1c63.66 44.56 97.34 67.36 97.68 66.11.13-.5.9-3.98 1.7-7.74 5.4-25.25 24.97-40.93 55.55-44.5 13.54-1.57 34.36.54 47.2 4.78 15.4 5.09 27.59 18.55 32.58 36 2.41 8.43 2.23 21.58-.41 30.32-3.46 11.46-9.17 20.68-19 30.72-5.55 5.68-16.35 14.58-22.26 18.36-2.04 1.3-3.71 2.66-3.71 3 0 .36 8.55.64 19.66.64h19.66l2.4 2.47c1.32 1.36 2.6 2.48 2.86 2.48s.64-6.15.85-13.67c.22-7.57.8-14.97 1.28-16.59.96-3.2 10.2-14.99 34.43-43.91 33.62-40.13 42.73-50.39 46.12-51.94 2.95-1.35 4.77-1.49 23.27-1.73l20.08-.27 4.52 4.48 4.52 4.48-.37 16.97c-.2 9.33-.55 28.34-.77 42.25l-.4 25.28h11.7l4.45 4.4 4.43 4.4v33.94l-4.4 4.44-4.4 4.44h-11.7v21.53l-4.4 4.43-4.4 4.44H577.4l-4.44-4.4-4.44-4.4v-21.6H493.5l.2 10.78c.17 9.85.05 11.03-1.32 13.61-1.79 3.38-3.4 4.93-6.23 6-3.34 1.28-123.37 1.05-126.44-.23-3.57-1.5-6.69-5.53-7.27-9.4-1.32-8.78 5.57-28.83 14.72-42.84 7.96-12.2 17.17-21.2 39.43-38.6 14.46-11.3 20.14-16.7 23.21-22.05 4.63-8.09 1.53-15.56-6.47-15.56-4.51 0-7.89 4.11-9.28 11.32-.67 3.5-1.2 4.32-5.36 8.17l-4.61 4.28-18.02-1.57c-9.9-.87-19.6-1.76-21.55-1.98l-3.53-.4-1.78 3.14c-1.48 2.6-4.11 4.74-15.56 12.58-7.58 5.2-29.79 21-49.37 35.13-26.5 19.12-35.5 25.98-35.28 26.85.22.85 59.77 103.57 61.04 105.3.64.87 8.46-4.13 50.47-32.28l47-31.5 6.74 3.6 6.74 3.61.44 10.84c.24 5.97.48 23.28.53 38.48s.3 38.2.56 51.1l.47 23.44h130.35l.47-32.35c.26-17.79.5-43.8.55-57.8.04-14 .28-27.33.53-29.62l.45-4.15 6.01-3.43c3.3-1.88 6.4-3.43 6.88-3.44.87-.02 53.89 32.7 84.62 52.24 9.3 5.9 17.15 10.48 17.46 10.17s10.95-18.38 23.66-40.16 26.24-44.88 30.07-51.34 7.05-12.07 7.16-12.47c.18-.61-17.9-14.48-86.91-66.65l-13.56-10.25-.04-4.32c-.02-2.38.17-5.83.42-7.67l.45-3.34 14.93-9.96c8.2-5.47 27.96-19.22 43.9-30.56s32.26-22.91 36.25-25.72 7.25-5.36 7.25-5.67-12.98-23.6-28.84-51.76c-23.8-42.3-30.67-54.18-33.76-58.48M568.65 411.18c-.68.1-10.74 12.28-10.74 13 0 .24 2.34.44 5.2.44h5.2l.45-3.71c.62-5.16.57-9.73-.1-9.73z" style="opacity:1;fill:#ffff02;fill-opacity:1;stroke:#ffff02;stroke-width:6.71751;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:0;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers" transform="scale(.1)"/><path d="M78.46 556.5c0-.05.48-.6.5-.58l.04.11.01.1-.26.2-.28.2zm30.64-3.65c0-.03.48-.48.72-.67a6 6 0 0 1 2.12-1.05l.24-.06h.04q-.01.03-.13.08a20 20 0 0 0-1.45.73 16 16 0 0 0-1.17.75c-.32.23-.37.26-.37.22" style="opacity:1;fill:#ffff02;fill-opacity:1;stroke:#ffff02;stroke-width:.209922;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:0;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers" transform="scale(.1)"/><path d="M1.78 2v45.49c0 2.11-.08 4.26.13 6.36.9 9.14 3.25 18.02 8.18 25.92a37.8 37.8 0 0 0 23.5 16.66c2.82.61 5.66 1.14 8.52 1.41 1.48.14 2.98-.01 4.46.13a35 35 0 0 0 6.61 0c.88-.09 1.8.08 2.67 0 2.6-.25 5.2-.43 7.76-.92a46 46 0 0 0 12.6-4.21 41 41 0 0 0 8.27-5.97c.86-.76 1.6-1.73 2.33-2.61a47 47 0 0 0 5.03-7.48c3.62-6.73 5.5-14.28 6.25-21.81.2-2.06.13-4.16.13-6.23V2H80.66v39.26c0 9.5.31 19.53-4.34 28.16-2.48 4.6-5.92 8.5-10.67 10.95-3.74 1.94-8.06 2.62-12.21 3.01-.92.09-1.88-.03-2.8 0-5.7.24-11.58-.75-16.67-3.38a24 24 0 0 1-9.65-9.7c-2.83-5.26-4.14-11.07-4.73-16.95-.44-4.42-.12-9.02-.12-13.46V1.99H1.78m89.06 8.98-1.27.04-1.4.46V9.23c0-.42-.03-.91.28-1.25.4-.45 1.08-.2 1.5.08 1.03.69.9 1.84.9 2.91m-79.15.38-1.27.04-1.4.45V9.48c0-.33-.07-.72.15-1 .53-.66 1.5-.29 1.97.25.64.74.55 1.71.55 2.62m29.52-.38-.13 13.09-7-4.28-3.3-1.95-5.5 9.72-1.78 3.11-.61 1.25 8.27 5.75 1.9 1.33.48.65-.73.6-1.65 1.18-5.34 3.9-1.66 1.2-.57.6.53 1 1.42 2.36 5.87 10.1 2.93-1.83 4.7-3.12 2.43-1.54v12.34h16.54l.12-12.46 2.8 1.7 4.71 3 3.05 1.78 1.76-3.12 4.01-6.98 1.5-2.49.3-.87-.57-.5-1.65-1.25-5.47-4.13-2.42-1.97 3.18-2.2 7.38-5.28v-.12l-1.7-3-6.19-10.84-2.03 1.2-6.11 3.7-2.55 1.46V10.97H41.22m46.7 9.72a4 4 0 0 1-1.4-.7c-3.58-2.68.05-8.23 3.69-8.62 1.3-.15 2.37.99 2.8 2.1.1.27.38.82.19 1.1-.17.22-.59.14-.83.14-.97 0-1.87-.9-2.8-.7-1.2.26-2.67 1.64-2.55 2.94.06.57.59.87.75 1.37.23.75.15 1.6.15 2.37m-79.02 0c-2.19-.17-3.2-2.79-2.75-4.6.47-1.96 2.69-3.93 4.66-4.33 1.36-.28 2.4.74 2.95 1.83.15.3.52.87.3 1.22-.2.33-.75.3-1.08.25-.93-.15-1.82-.98-2.8-.68-1.05.31-2.26 1.55-2.17 2.7.05.58.47.88.7 1.37.26.54.2 1.64.2 2.24m48.47 4.86 3.44-2.07 4.83-2.93 2.04-1.25.76-.33 1.06 1.6 2.52 4.48 2.67 4.74.81 1.5-.57.66-1.78 1.25-5.6 3.99-2.93 1.95 3.82 2.9 6.87 5.2v.12l-2.57 4.37-4.43 7.6-4.45-2.83-6.49-4.03-.13 13.21H42.37l-.13-13.2-7.13 4.77-2.16 1.46-1.27.62-4.88-8.35-1.38-2.37-.72-1.25.62-.66 1.78-1.29 5.47-3.95 2.67-1.82v-.25l-2.92-1.96-5.73-3.98-1.9-1.31-.6-.6.46-1 1.51-2.62 4.98-8.85 1.53.75 1.9 1.16 4.08 2.5 3.43 2.07v-13.7h11.58l2.8-.13.96.14-.07 1.1v2.5l.13 10.1M91.5 12.77c-.39.27.12.74.47.5.39-.28-.13-.74-.47-.5m-79.03.27c-.43.15-.13.71.25.64.47-.08.16-.79-.25-.64m76.2 10.76a53 53 0 0 0-.24-3.74c-.08-.78.1-1.6-.03-2.37-.1-.63-.36-1.9-.04-2.5.31-.57 1.8-1.09 2.3-.45.35.47-.07 1.78-.07 2.33q-.01 2.25-.26 4.48c-.04.4.15 1.01-.06 1.38-.24.42-1.15.71-1.59.87m-79.14.12c0-1.3.04-2.83-.21-4.1-.2-1.02.06-2.1-.04-3.13-.04-.36-.24-.74-.09-1.12.25-.64 1.86-1.17 2.31-.48.3.47-.06 1.35-.06 1.85q-.01 2.33-.26 4.61c-.04.45.19 1.22-.06 1.6-.25.4-1.15.68-1.59.77m33.21-6.85v6.85c0 1.62-.1 3.25.66 4.74 1.22 2.4 3.7 3 6.21 3 2.37 0 4.63-.47 5.94-2.63 1-1.63.93-3.38.93-5.23v-6.73h-4.2v7.48c0 1.21 0 2.55-1.14 3.32-1.47 1-3.6.23-4.03-1.45-.3-1.13-.17-2.34-.17-3.5v-5.85h-4.2m45.42 12.21c-.47-.17-.9-.39-1.27-.74a2 2 0 0 1-.53-.75c-.94-2.29 2.15-3.46 3.7-4.22.55-.26 1.15-.47 1.47-1.02.42-.7-.35-.85-.55-1.39-.18-.5-.02-1.32-.02-1.85 2.27.06 3.75 2.74 2.16 4.49-.91 1-2.25 1.4-3.43 1.97-.5.24-1.14.45-1.49.9-.54.7.3 1.81-.04 2.61m-79.01.25q-.72-.16-1.27-.64c-.3-.25-.5-.5-.64-.85-.91-2.49 2.4-3.4 3.94-4.37.44-.27.95-.56 1.23-1 .45-.68-.39-.84-.57-1.36s-.02-1.33-.02-1.87c2.26.17 3.85 2.83 2.16 4.6-.88.94-2.3 1.43-3.43 1.98-.55.27-1.14.5-1.5 1.02-.27.38.04.6.1 1 .07.47 0 1 0 1.5m81.05-3.5-.26 3.24-.06 1-1.08.75v-2.25l-.07-1.99 1.47-.75m-79.14.25c0 .6-.07 1.15-.13 1.75-.12 1.15.45 2.9-1.15 3.24v-2.12l-.06-2.12 1.34-.75m79.64 1.75c.33.2.71.35.98.64 1.67 1.78-1.21 3.26-2.37 4.13-.3.23-.64.52-.85.83-.36.54.08 1.48.08 2.12-1.33-.27-1.69-1.99-.97-2.99.42-.6 1.15-1 1.73-1.45.37-.29.84-.52 1.1-.92.46-.66-.24-1.67.3-2.36m-79.13.12c.35.18.71.35 1.01.62 1.94 1.79-1.06 3.36-2.29 4.28-.3.23-.64.52-.85.83-.32.49.09 1.52.09 2.12-1.08-.3-1.65-1.77-1.1-2.74.46-.82 1.39-1.34 2.12-1.91.32-.25.77-.59.95-.96.31-.63-.39-1.63.07-2.24m78.37 4.74-.23 3.36-.28 1.25h-.25l-.13-3-.02-.97.91-.64m-79.01.37-.38 4.49h-.38l-.13-2.87.06-1.12.83-.5m25.32 5.6 4.2.38c0-.92.4-2.03 1.4-2.32 1.3-.4 2.55.8 2.25 2.07-.34 1.4-1.68 2.32-2.76 3.16-1.56 1.21-3.3 2.56-4.22 4.32-.41.78-.73 1.5-.91 2.37-.05.24-.2.62-.02.85.15.2.47.15.7.15h10.68c.21 0 .56.06.75-.07.25-.17.14-.67.14-.93v-2.5h-6.36c.62-1.04 1.83-1.7 2.8-2.4 1.7-1.25 3.22-2.8 3.44-4.95a4.6 4.6 0 0 0-1.91-4.2c-.78-.52-1.77-.67-2.67-.8-2.91-.44-6.52.3-7.3 3.5-.1.46-.21.9-.21 1.38M50 46.74h7.76v3h3.7v-3h2.03v-3.36h-2.04l.13-9.35h-2.8l-1.14.06-.94 1.06-1.9 2.24-3.44 4.12-1.3 1.62-.06 1.12v2.5m40.33-10.98 1.4 1.25c-.7-.02-2.07-.35-1.4-1.25m-79 .25 1.52 1.25c-.64-.05-2.19-.36-1.53-1.25m46.57 2.5-.13 4.86h-3.94l2.8-3.5 1.27-1.36m32.06 15.82c.8-.14 1.97-1.36.76-1.93-.67-.31-1 .63-1.14 1.06-.41 1.22-.92 2.28-2.42 2.12-1.7-.18-1.85-2.4-1.4-3.61.21-.58.72-1.21 1.4-1.25.63-.03.65.93.49 1.37-.1.27-.43.31-.62.5-.35.36-.4 1.25.26 1.35.37.06.58-.46.68-.73.29-.81.43-1.8 1.23-2.32.95-.63 2.29-.21 2.86.7.6.98.48 2.85-.23 3.74-.26.32-1.46.95-1.8.48-.23-.3-.07-1.11-.07-1.47m-78 4.98-.37-1.62c.35-.25.77-.52.74-1-.03-.4-.41-1.06-.87-.72-.36.26-.34.83-.38 1.22-.1.93-.35 2.37-1.53 2.5a5 5 0 0 1-1.02 0c-1.84-.2-2.32-3.4-1.36-4.62.33-.4.88-.6 1.36-.74l.38 1.74c-.45.13-.92.48-.89 1 .02.38.39 1.13.9.93.52-.2.57-.98.63-1.43.16-1.14.58-2.49 2.04-2.37 1.89.15 2.58 3.01 1.6 4.36-.3.44-.73.6-1.22.75m75.45-2.72c1.43-.23 3.04.13 3.9 1.35 1.25 1.77.05 4.4-2 4.82-1.29.26-3.14-.21-3.9-1.33-1.19-1.75-.13-4.5 2-4.84m.38 1.64c-1.05.11-1.92 1.25-1.1 2.18.5.57 1.64.72 2.37.65 1.05-.12 1.6-1.28.98-2.12-.42-.57-1.57-.78-2.25-.71M15 64.44l-1.27.37-.66-2.12-.36-.8-.89.06.64 2.99-1.15.25-.76-2.87-1.27.25.76 3.24-1.4.25L7.5 61.2l4.46-1.04 1.74-.27.4 1.19.91 3.36m75.7.12-.5 1.75-6.24-1.5.38-1.74 2.42.52 3.94.97m-75.44.63c.43 1.36 1.44 2.88 1.27 4.36-.12 1.04-1.45 1.66-2.42 1.33-.36-.12-.63-.45-.89-.7-.1 1.13-1.14 1.98-1.78 2.86-.33-.3-.97-1.4-.83-1.87.15-.5.78-.97 1.1-1.37.24-.3 1.04-1.13.36-1.43-.23-.1-.44.08-.63.16-.52.24-1.1.53-1.65.65l-.64-1.75 3.69-1.4 2.42-.84m71.37 2.86c.9-.69 2.2-.78 3.31-.87l-.5 1.87c-1.08.08-2.86 0-3.32 1.12l2.55.88-.51 1.5-3.3-1.09-2.8-1.04q.38-1.2.84-2.37c.22-.55.36-1.16.83-1.57 1.29-1.14 2.9.17 2.9 1.57m-72.14-.87c-.28.17-.88.27-1.08.54-.13.18-.03.4.04.58.15.38.36.83.79.96.47.14.89-.26.85-.7-.03-.25-.13-.53-.22-.75q-.11-.39-.38-.63m69.34 2.12 1.28.37c.08-.44.47-1.16.19-1.6-.68-1.05-1.43.72-1.47 1.23m-66.8 1 .75 1.5-.85 1.11-2.06 2.5 3.18-.8 1.28-.24.89 1.41-4.33.91-2.03.42-1.1-1.58.99-1.37 3.03-3.86h.26m70.61 2.99-.76 1.62-1.15-.25-.53 1.12-.4.7.61.8-.7 1.5h-.25c-.76-1.28-2.05-2.51-3.05-3.62-.3-.33-.93-.82-1.06-1.25-.12-.37.65-1.6 1.06-1.62.65-.04 1.38.3 2.03.37 1.37.15 2.88.26 4.2.63m-5.47.62 1.65 1.62.64-1.12-2.29-.5m-2.29 1 .95 1-.95 1.49 1.4.98 2.29 1.89v.12l-1.02 1.25h-.12l-2.8-2.29-.9-.62-1.01 1.16-1.27-.74.84-1.25 2.59-3m-59.16 1.13.97 1.25-.84 1-2.68 2.38-1.14.83-1.15-1.1v-.12l2.8-2.5 2.04-1.74m4.7 6.6c-.38-.08-1.1-.29-1.33-.64-.38-.6.05-1.52-1.08-1.6-1.51-.1-3.22 3.05-1.15 3.45.41.08.9-.32 1.28-.46l.89 1.37c-.73.49-1.65.85-2.55.59a3.12 3.12 0 0 1-1.89-4.45c1.07-2.1 4.37-3.14 5.69-.62.4.75.3 1.57.15 2.36m54.7 1.5-1.4 1-3.94-4.61 1.27-1.08 1.1 1.08 1.83 2.11 1.14 1.5m-5.85-3.24 2.33 3.86.79 1.37-1.2.96-1.4-.66-2.3-1.17 1.65 3.12-1.4.62c-.79-1.23-1.48-2.57-2.18-3.86-.22-.41-.7-.9-.72-1.37-.02-.42.87-.88 1.25-.88.45 0 .9.37 1.27.59.72.4 1.52.88 2.3 1.16L73.4 82.5l-.32-.87 1.21-.75m-50.38 5.98 1.5-2.74 1.55-2.74 1.38.77-.47 1.1-1.4 2.5-1.16 1.84-1.4-.73m6.1-3.6a3 3 0 0 1 1.4.11c.8.27 1.51.73 1.9 1.5.93 1.88-.45 4.9-2.66 5.1a3 3 0 0 1-1.53-.35c-.6-.29-1.18-.64-1.5-1.26-.93-1.82.28-4.75 2.4-5.1m41.85 6.22c-.87.43-1.83.85-2.16-.37l-1.97.76-.06 1.23-1.66.37.13-4.73.06-1.83 1.72-.58L69 85.63l1.9 2.49.98 1.37m-41.6-4.7c-.92.32-1.54 1.95-1.23 2.83.19.53.9 1.02 1.48.83.96-.31 1.5-1.79 1.4-2.7-.08-.76-.92-1.2-1.65-.95m21 .08v2.87l2.54-1.37 1.52 2.61-2.54 1.5v.12l2.55 1.5-1.53 2.62-2.55-1.37v2.99h-3.05v-3l-2.54 1.38-1.4-2.62 2.41-1.5L44.15 89l1.52-2.61 2.55 1.37v-2.87h3.05m-12.21 2.74-1.53-.25c-.03-.42-.18-.8-.63-.95-.32-.11-.85.05-.83.45.02.48 1.11.84 1.46 1.04 1.05.61 1.5 1.69.98 2.83-.77 1.68-3.7 1.36-4.62 0-.36-.52-.3-1.16-.3-1.75l1.65.25c0 .48.05.9.51 1.18.44.27 1.3.08 1.23-.56-.05-.55-.94-.89-1.35-1.14-.95-.56-1.6-1.51-1.1-2.6.65-1.45 3.03-1.22 4.02-.25.52.5.51 1.09.51 1.75m25.45-.5-1.4.38c-.23-.32-.45-.67-.9-.67-.4 0-.92.39-.6.8.3.4 1.17.32 1.62.36 1.2.12 2.16 1 2.04 2.25-.16 1.66-2.5 2.5-3.94 1.87-.78-.34-1.04-1.01-1.28-1.75.41-.03 1.25-.44 1.61-.19.23.16.3.48.56.65.57.38 1.78-.25 1.23-.94-.32-.38-.8-.35-1.23-.39-1.18-.11-2.3-.57-2.3-1.87 0-.31.01-.59.15-.87.8-1.58 4.27-1.7 4.44.37m3.05-1v2.37l1.27-.5z" style="display:inline;fill:#000;fill-opacity:1;stroke:#ffff02;stroke-width:1.7544;stroke-linecap:square;stroke-miterlimit:0;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"/></g></svg>
+    <div class="stack">
+      <div class="field">
+        <svg class="ico lead" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7.5"/><path d="M20.5 20.5l-4.2-4.2"/>
+        </svg>
+        <input id="q" type="text"
+               autocomplete="off" autocorrect="off" autocapitalize="off"
+               spellcheck="false" inputmode="search" enterkeyhint="search"
+               aria-label="Buscar ubicación por nombre o número" aria-controls="list" autofocus>
+        <button id="clear" type="button" aria-label="Borrar búsqueda">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p class="sub">Feria de Almería 2026</p>
+    </div>
+  </div>
+
+  <p class="sr" id="meta" role="status" aria-live="polite"></p>
+</header>
+
+<main>
+  <ul id="list"></ul>
+  <div class="empty" id="empty" hidden></div>
+</main>
+
+<script>
+/* Fuse.js — motor de coincidencia aproximada. Se empotra desde src/vendor/ y
+   se envuelve aquí porque el paquete se distribuye como módulo CommonJS: sin
+   este envoltorio no expondría nada a la página. */
+const Fuse = (function(){
+  const module = { exports:{} }, exports = module.exports;
+  /**
+ * Fuse.js v7.5.0 - Lightweight fuzzy-search (http://fusejs.io)
+ *
+ * Copyright (c) 2026 Kiro Risk (http://kiro.me)
+ * All Rights Reserved. Apache Software License 2.0
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+function e(e){return Array.isArray?Array.isArray(e):u(e)===`[object Array]`}function t(e){if(typeof e==`string`)return e;if(typeof e==`bigint`)return e.toString();let t=e+``;return t==`0`&&1/e==-1/0?`-0`:t}function n(e){return e==null?``:t(e)}function r(e){return typeof e==`string`}function i(e){return typeof e==`number`}function a(e){return e===!0||e===!1||s(e)&&u(e)==`[object Boolean]`}function o(e){return typeof e==`object`}function s(e){return o(e)&&e!==null}function c(e){return e!=null}function l(e){return!e.trim().length}function u(e){return e==null?e===void 0?`[object Undefined]`:`[object Null]`:Object.prototype.toString.call(e)}const d=`Invalid doc index: must be a non-negative integer within the bounds of the docs array`,f=e=>`Pattern length exceeds max of ${e}.`,p=e=>`Missing ${e} property in key`,m=e=>`Property 'weight' in key '${e}' must be a positive integer`,h=Object.prototype.hasOwnProperty;var g=class{constructor(e){this._keys=[],this._keyMap={};let t=0;e.forEach(e=>{let n=_(e);this._keys.push(n),this._keyMap[n.id]=n,t+=n.weight}),this._keys.forEach(e=>{e.weight/=t})}get(e){return this._keyMap[e]}keys(){return this._keys}toJSON(){return JSON.stringify(this._keys)}};function _(t){let n=null,i=null,a=null,o=1,s=null;if(r(t)||e(t))a=t,n=v(t),i=y(t);else{if(!h.call(t,`name`))throw Error(p(`name`));let e=t.name;if(a=e,h.call(t,`weight`)&&t.weight!==void 0&&(o=t.weight,o<=0))throw Error(m(y(e)));n=v(e),i=y(e),s=t.getFn??null}return{path:n,id:i,weight:o,src:a,getFn:s}}function v(t){return e(t)?t:t.split(`.`)}function y(t){return e(t)?t.join(`.`):t}function b(t,o){let s=[],l=!1,u=(t,o,d,f)=>{if(c(t))if(!o[d])s.push(f===void 0?t:{v:t,i:f});else{let p=t[o[d]];if(!c(p))return;if(d===o.length-1&&(r(p)||i(p)||a(p)||typeof p==`bigint`))s.push(f===void 0?n(p):{v:n(p),i:f});else if(e(p)){l=!0;for(let e=0,t=p.length;e<t;e+=1)u(p[e],o,d+1,e)}else o.length&&u(p,o,d+1,f)}};return u(t,r(o)?o.split(`.`):o,0),l?s:s[0]}const x={includeMatches:!1,findAllMatches:!1,minMatchCharLength:1},S={isCaseSensitive:!1,ignoreDiacritics:!1,includeScore:!1,keys:[],shouldSort:!0,sortFn:(e,t)=>e.score===t.score?e.idx<t.idx?-1:1:e.score<t.score?-1:1},C={location:0,threshold:.6,distance:100},w={useExtendedSearch:!1,useTokenSearch:!1,tokenize:void 0,tokenMatch:`any`,getFn:b,ignoreLocation:!1,ignoreFieldNorm:!1,fieldNormWeight:1},T=Object.freeze({...S,...x,...C,...w});function E(e){return e>=9&&e<=13||e===32||e===160}function D(e=1,t=3){let n=new Map,r=10**t;return{get(t){let i=0,a=!1;for(let e=0;e<t.length;e++)E(t.charCodeAt(e))?a=!1:a||(i++,a=!0);if(i===0&&(i=1),n.has(i))return n.get(i);let o=Math.round(r/i**(.5*e))/r;return n.set(i,o),o},clear(){n.clear()}}}var O=class{constructor({getFn:e=T.getFn,fieldNormWeight:t=T.fieldNormWeight}={}){this.norm=D(t,3),this.getFn=e,this.isCreated=!1,this.docs=[],this.keys=[],this._keysMap={},this.setIndexRecords()}setSources(e=[]){this.docs=e}setIndexRecords(e=[]){this.records=e}setKeys(e=[]){this.keys=e,this._keysMap={},e.forEach((e,t)=>{this._keysMap[e.id]=t})}create(){if(this.isCreated||!this.docs.length)return;this.isCreated=!0;let e=this.docs.length;this.records=Array(e);let t=0;if(r(this.docs[0]))for(let n=0;n<e;n++){let e=this._createStringRecord(this.docs[n],n);e&&(this.records[t++]=e)}else for(let n=0;n<e;n++)this.records[t++]=this._createObjectRecord(this.docs[n],n);this.records.length=t,this.norm.clear()}add(e,t){if(!Number.isInteger(t)||t<0)throw Error(d);if(r(e)){let n=this._createStringRecord(e,t);return n&&this.records.push(n),n}let n=this._createObjectRecord(e,t);return this.records.push(n),n}removeAt(e){if(!Number.isInteger(e)||e<0)throw Error(d);for(let t=0,n=this.records.length;t<n;t+=1)if(this.records[t].i===e){this.records.splice(t,1);break}for(let t=0,n=this.records.length;t<n;t+=1)this.records[t].i>e&&--this.records[t].i}removeAll(e){let t=new Set;for(let n of e)Number.isInteger(n)&&n>=0&&t.add(n);if(t.size===0)return;this.records=this.records.filter(e=>!t.has(e.i));let n=Array.from(t).sort((e,t)=>e-t);for(let e of this.records){let t=0,r=n.length;for(;t<r;){let i=t+r>>>1;n[i]<e.i?t=i+1:r=i}e.i-=t}}getValueForItemAtKeyId(e,t){return e[this._keysMap[t]]}size(){return this.records.length}_createStringRecord(e,t){return!c(e)||l(e)?null:{v:e,i:t,n:this.norm.get(e)}}_createObjectRecord(t,i){let a={i,$:{}};for(let i=0,o=this.keys.length;i<o;i++){let o=this.keys[i],s=o.getFn?o.getFn(t):this.getFn(t,o.path);if(c(s)){if(e(s)){let e=[];for(let t=0,i=s.length;t<i;t+=1){let i=s[t];if(c(i)){if(r(i)){if(!l(i)){let n={v:i,i:t,n:this.norm.get(i)};e.push(n)}}else if(c(i.v)){let t=r(i.v)?i.v:n(i.v);if(!l(t)){let n={v:t,i:i.i,n:this.norm.get(t)};e.push(n)}}}}a.$[i]=e}else if(r(s)&&!l(s)){let e={v:s,n:this.norm.get(s)};a.$[i]=e}}}return a}toJSON(){return{keys:this.keys.map(({getFn:e,...t})=>t),records:this.records}}};function k(e,t,{getFn:n=T.getFn,fieldNormWeight:r=T.fieldNormWeight}={}){let i=new O({getFn:n,fieldNormWeight:r});return i.setKeys(e.map(_)),i.setSources(t),i.create(),i}function A(e,{getFn:t=T.getFn,fieldNormWeight:n=T.fieldNormWeight}={}){let{keys:r,records:i}=e,a=new O({getFn:t,fieldNormWeight:n});return a.setKeys(r),a.setIndexRecords(i),a}function j(e=[],t=T.minMatchCharLength){let n=[],r=-1,i=-1,a=0;for(let o=e.length;a<o;a+=1){let o=e[a];o&&r===-1?r=a:!o&&r!==-1&&(i=a-1,i-r+1>=t&&n.push([r,i]),r=-1)}return e[a-1]&&a-r>=t&&n.push([r,a-1]),n}function M(e,t,n,{location:r=T.location,distance:i=T.distance,threshold:a=T.threshold,findAllMatches:o=T.findAllMatches,minMatchCharLength:s=T.minMatchCharLength,includeMatches:c=T.includeMatches,ignoreLocation:l=T.ignoreLocation}={}){if(t.length>32)throw Error(f(32));let u=t.length,d=e.length,p=Math.max(0,Math.min(r,d)),m=a,h=p,g=(e,t)=>{let n=e/u;if(l)return n;let r=Math.abs(p-t);return i?n+r/i:r?1:n},_=s>1||c,v=_?Array(d):[],y;for(;(y=e.indexOf(t,h))>-1;){let e=g(0,y);if(m=Math.min(e,m),h=y+u,_){let e=0;for(;e<u;)v[y+e]=1,e+=1}}h=-1;let b=[],x=1,S=0,C=u+d,w=1<<u-1;for(let t=0;t<u;t+=1){let r=0,i=C;for(;r<i;)g(t,p+i)<=m?r=i:C=i,i=Math.floor((C-r)/2+r);C=i;let a=Math.max(1,p-i+1),s=o?d:Math.min(p+i,d)+u,c=Array(s+2);c[s+1]=(1<<t)-1;for(let r=s;r>=a;--r){let i=r-1,o=n[e[i]];if(c[r]=(c[r+1]<<1|1)&o,t&&(c[r]|=(b[r+1]|b[r])<<1|1|b[r+1]),c[r]&w&&(x=g(t,i),x<=m)){if(m=x,h=i,S=t,h<=p)break;a=Math.max(1,2*p-h)}}if(g(t+1,p)>m)break;b=c}if(_&&h>=0){let t=Math.min(d-1,h+u-1+S);for(let r=h;r<=t;r+=1)n[e[r]]&&(v[r]=1)}let E={isMatch:h>=0,score:Math.max(.001,x)};if(_){let e=j(v,s);e.length?c&&(E.indices=e):E.isMatch=!1}return E}function N(e){let t={};for(let n=0,r=e.length;n<r;n+=1){let i=e.charAt(n);t[i]=(t[i]||0)|1<<r-n-1}return t}function P(e){if(e.length<=1)return e;e.sort((e,t)=>e[0]-t[0]||e[1]-t[1]);let t=[e[0]];for(let n=1,r=e.length;n<r;n+=1){let r=t[t.length-1],i=e[n];i[0]<=r[1]+1?r[1]=Math.max(r[1],i[1]):t.push(i)}return t}const F={ł:`l`,Ł:`L`,đ:`d`,Đ:`D`,ø:`o`,Ø:`O`,ħ:`h`,Ħ:`H`,ŧ:`t`,Ŧ:`T`,ı:`i`,ß:`ss`},I=RegExp(`[`+Object.keys(F).join(``)+`]`,`g`),L=typeof String.prototype.normalize==`function`?e=>e.normalize(`NFD`).replace(/[\u0300-\u036F\u0483-\u0489\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED\u0711\u0730-\u074A\u07A6-\u07B0\u07EB-\u07F3\u07FD\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u082D\u0859-\u085B\u08D3-\u08E1\u08E3-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962\u0963\u0981-\u0983\u09BC\u09BE-\u09C4\u09C7\u09C8\u09CB-\u09CD\u09D7\u09E2\u09E3\u09FE\u0A01-\u0A03\u0A3C\u0A3E-\u0A42\u0A47\u0A48\u0A4B-\u0A4D\u0A51\u0A70\u0A71\u0A75\u0A81-\u0A83\u0ABC\u0ABE-\u0AC5\u0AC7-\u0AC9\u0ACB-\u0ACD\u0AE2\u0AE3\u0AFA-\u0AFF\u0B01-\u0B03\u0B3C\u0B3E-\u0B44\u0B47\u0B48\u0B4B-\u0B4D\u0B56\u0B57\u0B62\u0B63\u0B82\u0BBE-\u0BC2\u0BC6-\u0BC8\u0BCA-\u0BCD\u0BD7\u0C00-\u0C04\u0C3E-\u0C44\u0C46-\u0C48\u0C4A-\u0C4D\u0C55\u0C56\u0C62\u0C63\u0C81-\u0C83\u0CBC\u0CBE-\u0CC4\u0CC6-\u0CC8\u0CCA-\u0CCD\u0CD5\u0CD6\u0CE2\u0CE3\u0D00-\u0D03\u0D3B\u0D3C\u0D3E-\u0D44\u0D46-\u0D48\u0D4A-\u0D4D\u0D57\u0D62\u0D63\u0D82\u0D83\u0DCA\u0DCF-\u0DD4\u0DD6\u0DD8-\u0DDF\u0DF2\u0DF3\u0E31\u0E34-\u0E3A\u0E47-\u0E4E\u0EB1\u0EB4-\u0EB9\u0EBB\u0EBC\u0EC8-\u0ECD\u0F18\u0F19\u0F35\u0F37\u0F39\u0F3E\u0F3F\u0F71-\u0F84\u0F86\u0F87\u0F8D-\u0F97\u0F99-\u0FBC\u0FC6\u102B-\u103E\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F\u109A-\u109D\u135D-\u135F\u1712-\u1714\u1732-\u1734\u1752\u1753\u1772\u1773\u17B4-\u17D3\u17DD\u180B-\u180D\u1885\u1886\u18A9\u1920-\u192B\u1930-\u193B\u1A17-\u1A1B\u1A55-\u1A5E\u1A60-\u1A7C\u1A7F\u1AB0-\u1ABE\u1B00-\u1B04\u1B34-\u1B44\u1B6B-\u1B73\u1B80-\u1B82\u1BA1-\u1BAD\u1BE6-\u1BF3\u1C24-\u1C37\u1CD0-\u1CD2\u1CD4-\u1CE8\u1CED\u1CF2-\u1CF4\u1CF7-\u1CF9\u1DC0-\u1DF9\u1DFB-\u1DFF\u20D0-\u20F0\u2CEF-\u2CF1\u2D7F\u2DE0-\u2DFF\u302A-\u302F\u3099\u309A\uA66F-\uA672\uA674-\uA67D\uA69E\uA69F\uA6F0\uA6F1\uA802\uA806\uA80B\uA823-\uA827\uA880\uA881\uA8B4-\uA8C5\uA8E0-\uA8F1\uA8FF\uA926-\uA92D\uA947-\uA953\uA980-\uA983\uA9B3-\uA9C0\uA9E5\uAA29-\uAA36\uAA43\uAA4C\uAA4D\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAEB-\uAAEF\uAAF5\uAAF6\uABE3-\uABEA\uABEC\uABED\uFB1E\uFE00-\uFE0F\uFE20-\uFE2F]/g,``).replace(I,e=>F[e]):e=>e;var R=class{constructor(e,{location:t=T.location,threshold:n=T.threshold,distance:r=T.distance,includeMatches:i=T.includeMatches,findAllMatches:a=T.findAllMatches,minMatchCharLength:o=T.minMatchCharLength,isCaseSensitive:s=T.isCaseSensitive,ignoreDiacritics:c=T.ignoreDiacritics,ignoreLocation:l=T.ignoreLocation}={}){if(this.options={location:t,threshold:n,distance:r,includeMatches:i,findAllMatches:a,minMatchCharLength:o,isCaseSensitive:s,ignoreDiacritics:c,ignoreLocation:l},e=s?e:e.toLowerCase(),e=c?L(e):e,this.pattern=e,this.chunks=[],!this.pattern.length)return;let u=(e,t)=>{this.chunks.push({pattern:e,alphabet:N(e),startIndex:t})},d=this.pattern.length;if(d>32){let e=0,t=d%32,n=d-t;for(;e<n;)u(this.pattern.substr(e,32),e),e+=32;if(t){let e=d-32;u(this.pattern.substr(e),e)}}else u(this.pattern,0)}searchIn(e){let{isCaseSensitive:t,ignoreDiacritics:n,includeMatches:r}=this.options;if(e=t?e:e.toLowerCase(),e=n?L(e):e,this.pattern===e){if(e.length<this.options.minMatchCharLength)return{isMatch:!1,score:1};let t={isMatch:!0,score:0};return r&&(t.indices=[[0,e.length-1]]),t}let{location:i,distance:a,threshold:o,findAllMatches:s,minMatchCharLength:c,ignoreLocation:l}=this.options,u=[],d=0,f=!1;this.chunks.forEach(({pattern:t,alphabet:n,startIndex:p})=>{let{isMatch:m,score:h,indices:g}=M(e,t,n,{location:i+p,distance:a,threshold:o,findAllMatches:s,minMatchCharLength:c,includeMatches:r,ignoreLocation:l});m&&(f=!0),d+=h,m&&g&&u.push(...g)});let p={isMatch:f,score:f?d/this.chunks.length:1};return f&&r&&(p.indices=P(u)),p}};const z=[];function B(...e){z.push(...e)}function V(e,t){for(let n=0,r=z.length;n<r;n+=1){let r=z[n];if(r.condition(e,t))return new r(e,t)}return new R(e,t)}function H(e,{ignoreFieldNorm:t=T.ignoreFieldNorm}){let n=1;return e.forEach(({key:e,norm:r,score:i})=>{let a=e?e.weight:null;n*=(i===0&&a?2**-52:i)**+((a||1)*(t?1:r))}),n}function U(e,{ignoreFieldNorm:t=T.ignoreFieldNorm}){e.forEach(e=>{e.score=H(e.matches,{ignoreFieldNorm:t})})}var W=class{constructor(e,t){this.limit=e,this.heap=[],this.comparator=t}get size(){return this.heap.length}insert(e){this.size<this.limit?(this.heap.push(e),this._bubbleUp(this.size-1)):this.comparator(e,this.heap[0])<0&&(this.heap[0]=e,this._sinkDown(0))}extractSorted(){return this.heap.sort(this.comparator)}_bubbleUp(e){let t=this.heap;for(;e>0;){let n=e-1>>1;if(this.comparator(t[e],t[n])<=0)break;let r=t[e];t[e]=t[n],t[n]=r,e=n}}_sinkDown(e){let t=this.heap,n=t.length,r=e;do{e=r;let i=2*e+1,a=2*e+2;if(i<n&&this.comparator(t[i],t[r])>0&&(r=i),a<n&&this.comparator(t[a],t[r])>0&&(r=a),r!==e){let n=t[e];t[e]=t[r],t[r]=n}}while(r!==e)}};function G(e){let t=[];return e.matches.forEach(e=>{if(!c(e.indices)||!e.indices.length)return;let n={indices:e.indices,value:e.value};e.key&&(n.key=e.key.id),e.idx>-1&&(n.refIndex=e.idx),t.push(n)}),t}function K(e,t,{includeMatches:n=T.includeMatches,includeScore:r=T.includeScore}={}){return e.map(e=>{let{idx:i}=e,a={item:t[i],refIndex:i};return n&&(a.matches=G(e)),r&&(a.score=e.score),a})}const q=/[\p{L}\p{M}\p{N}_]+/gu;function J(e){return typeof e==`function`?t=>e(t):e instanceof RegExp?(e.global,t=>t.match(e)||[]):e=>e.match(q)||[]}function Y({isCaseSensitive:e=!1,ignoreDiacritics:t=!1,tokenize:n}={}){let r=J(n);return{tokenize(n){return e||(n=n.toLowerCase()),t&&(n=L(n)),r(n)}}}function X(e,t,n,r){let i=r.tokenize(t);if(!i.length)return;e.fieldCount++,e.docFieldCount.set(n,(e.docFieldCount.get(n)||0)+1);let a=new Set(i),o=e.docTermFieldHits.get(n);o||(o=new Map,e.docTermFieldHits.set(n,o));for(let t of a)o.set(t,(o.get(t)||0)+1),e.df.set(t,(e.df.get(t)||0)+1)}function Z(e,t,n,r){let{i,v:a,$:o}=t;if(a!==void 0){X(e,a,i,r);return}if(o)for(let t=0;t<n;t++){let n=o[t];if(n)if(Array.isArray(n))for(let t of n)X(e,t.v,i,r);else X(e,n.v,i,r)}}function ee(e,t,n){let r={fieldCount:0,df:new Map,docFieldCount:new Map,docTermFieldHits:new Map};for(let i of e)Z(r,i,t,n);return r}function te(e,t,n,r){Z(e,t,n,r)}function ne(e,t){let n=e.docFieldCount.get(t);if(n===void 0)return;e.fieldCount-=n,e.docFieldCount.delete(t);let r=e.docTermFieldHits.get(t);if(r){for(let[t,n]of r){let r=(e.df.get(t)||0)-n;r<=0?e.df.delete(t):e.df.set(t,r)}e.docTermFieldHits.delete(t)}}function Q(e,t){if(t.length===0)return;let n=Array.from(new Set(t)).sort((e,t)=>e-t);for(let t of n)ne(e,t);let r=e=>{let t=0,r=n.length;for(;t<r;){let i=t+r>>>1;n[i]<e?t=i+1:r=i}return e-t},i=n[0],a=new Map;for(let[t,n]of e.docFieldCount)a.set(t>i?r(t):t,n);e.docFieldCount=a;let o=new Map;for(let[t,n]of e.docTermFieldHits)o.set(t>i?r(t):t,n);e.docTermFieldHits=o}var $=class{constructor(e,t,n){if(this.options={...T,...t},this.options.useExtendedSearch)throw Error(`Extended search is not available`);if(this.options.useTokenSearch)throw Error(`Token search is not available`);this._keyStore=new g(this.options.keys),this._docs=e,this._myIndex=null,this._invertedIndex=null,this.setCollection(e,n),this._lastQuery=null,this._lastSearcher=null}_getSearcher(e){if(this._lastQuery===e)return this._lastSearcher;let t=V(e,this._invertedIndex?{...this.options,_invertedIndex:this._invertedIndex}:this.options);return this._lastQuery=e,this._lastSearcher=t,t}setCollection(e,t){if(this._docs=e,t&&!(t instanceof O))throw Error(`Incorrect 'index' type`);if(this._myIndex=t||k(this.options.keys,this._docs,{getFn:this.options.getFn,fieldNormWeight:this.options.fieldNormWeight}),this.options.useTokenSearch){let e=Y({isCaseSensitive:this.options.isCaseSensitive,ignoreDiacritics:this.options.ignoreDiacritics,tokenize:this.options.tokenize});this._invertedIndex=ee(this._myIndex.records,this._myIndex.keys.length,e)}this._invalidateSearcherCache()}add(e){if(!c(e))return;this._docs.push(e);let t=this._myIndex.add(e,this._docs.length-1);if(this._invertedIndex&&t){let e=Y({isCaseSensitive:this.options.isCaseSensitive,ignoreDiacritics:this.options.ignoreDiacritics,tokenize:this.options.tokenize});te(this._invertedIndex,t,this._myIndex.keys.length,e)}this._invalidateSearcherCache()}remove(e=()=>!1){let t=[],n=[];for(let r=0,i=this._docs.length;r<i;r+=1)e(this._docs[r],r)&&(t.push(this._docs[r]),n.push(r));if(n.length){this._invertedIndex&&Q(this._invertedIndex,n);let e=new Set(n);this._docs=this._docs.filter((t,n)=>!e.has(n)),this._myIndex.removeAll(n),this._invalidateSearcherCache()}return t}removeAt(e){if(!Number.isInteger(e)||e<0||e>=this._docs.length)throw Error(d);this._invertedIndex&&Q(this._invertedIndex,[e]);let t=this._docs.splice(e,1)[0];return this._myIndex.removeAt(e),this._invalidateSearcherCache(),t}_invalidateSearcherCache(){this._lastQuery=null,this._lastSearcher=null}getIndex(){return this._myIndex}_normalizedKeys(){return this._myIndex.keys.map(e=>this._keyStore.get(e.id)||e)}search(e,t){let{limit:n=-1}=t||{},{includeMatches:a,includeScore:o,shouldSort:s,sortFn:c,ignoreFieldNorm:l}=this.options;if(r(e)&&!e.trim()){let e=this._docs.map((e,t)=>({item:e,refIndex:t}));return i(n)&&n>-1&&(e=e.slice(0,n)),e}let u=s&&i(n)&&n>0&&r(e),d=c,f=(e,t)=>d(e,t)||e.idx-t.idx,p;if(u){let t=new W(n,f);r(this._docs[0])?this._searchStringList(e,{heap:t,ignoreFieldNorm:l}):this._searchObjectList(e,{heap:t,ignoreFieldNorm:l}),p=t.extractSorted()}else p=r(e)?r(this._docs[0])?this._searchStringList(e):this._searchObjectList(e):this._searchLogical(e),U(p,{ignoreFieldNorm:l}),s&&p.sort(r(e)?f:d),i(n)&&n>-1&&(p=p.slice(0,n));return K(p,this._docs,{includeMatches:a,includeScore:o})}_searchStringList(e,{heap:t,ignoreFieldNorm:n}={}){let r=this._getSearcher(e),i=this.options.useTokenSearch&&this.options.tokenMatch===`all`,{records:a}=this._myIndex,o=t?null:[];return a.forEach(({v:e,i:a,n:s})=>{if(!c(e))return;let l=r.searchIn(e);if(l.isMatch){let r={score:l.score,value:e,norm:s,indices:l.indices};i&&(r.matchedMask=l.matchedMask,r.matchedTerms=l.matchedTerms,r.termCount=l.termCount);let c=[r];if(!i||this._coversAllTokens(c)){let r={item:e,idx:a,matches:c};t?(r.score=H(r.matches,{ignoreFieldNorm:n}),t.insert(r)):o.push(r)}}}),o}_searchLogical(e){throw Error(`Logical search is not available`)}_searchObjectList(e,{heap:t,ignoreFieldNorm:n}={}){let r=this._getSearcher(e),i=this.options.useTokenSearch&&this.options.tokenMatch===`all`,{records:a}=this._myIndex,o=this._normalizedKeys(),s=t?null:[];return a.forEach(({$:e,i:a})=>{if(!c(e))return;let l=[],u=!1,d=!1;if(o.forEach((t,n)=>{let i=this._findMatches({key:t,value:e[n],searcher:r});i.length?(l.push(...i),i[0].hasInverse&&(d=!0)):u=!0}),!(d&&u)&&l.length&&(!i||this._coversAllTokens(l))){let r={idx:a,item:e,matches:l};t?(r.score=H(r.matches,{ignoreFieldNorm:n}),t.insert(r)):s.push(r)}}),s}_findMatches({key:t,value:n,searcher:r}){if(!c(n))return[];let i=[];if(e(n))n.forEach(({v:e,i:n,n:a})=>{if(!c(e))return;let o=r.searchIn(e);if(o.isMatch){let r={score:o.score,key:t,value:e,idx:n,norm:a,indices:o.indices,hasInverse:o.hasInverse};o.termCount!==void 0&&(r.matchedMask=o.matchedMask,r.matchedTerms=o.matchedTerms,r.termCount=o.termCount),i.push(r)}});else{let{v:e,n:a}=n,o=r.searchIn(e);if(o.isMatch){let n={score:o.score,key:t,value:e,norm:a,indices:o.indices,hasInverse:o.hasInverse};o.termCount!==void 0&&(n.matchedMask=o.matchedMask,n.matchedTerms=o.matchedTerms,n.termCount=o.termCount),i.push(n)}}return i}_coversAllTokens(e){let t=e.length?e[0].termCount:void 0;if(t===void 0)return!0;if(t<=31){let n=0;for(let t=0;t<e.length;t++)n|=e[t].matchedMask||0;return n===2**t-1}let n=new Set;for(let t=0;t<e.length;t++){let r=e[t].matchedTerms;if(r)for(let e of r)n.add(e)}return n.size===t}};$.version=`7.5.0`,$.createIndex=k,$.parseIndex=A,$.config=T,$.match=function(e,t,n){if(n&&n.useTokenSearch)throw Error(`Fuse.match does not support useTokenSearch: token search requires corpus-level statistics (df, fieldCount) that a one-off string comparison does not have. Use new Fuse(...).search(...) instead.`);return V(e,{...T,...n}).searchIn(t)},$.use=function(...e){e.forEach(e=>B(e))};var re=$;module.exports=re;
+  return module.exports;
+})();
+
+/* Generado desde data.md por scripts/build.py. No editar a mano. */
+const LOCATIONS = [{"id":"loc-000","label":"A-01","display":"A-01","numbers":[],"name":"Montaña Jet Star","street":"","lat":"36.834454","lon":"-2.430808","search":"montana jet star a-01","flat":"montanajetstara01","nameSearch":"montana jet star"},{"id":"loc-001","label":"A-02","display":"A-02","numbers":[],"name":"Ranita Show","street":"","lat":"36.834755","lon":"-2.431002","search":"ranita show a-02","flat":"ranitashowa02","nameSearch":"ranita show"},{"id":"loc-002","label":"A-03","display":"A-03","numbers":[],"name":"Projekt One","street":"","lat":"36.834755","lon":"-2.430812","search":"projekt one a-03","flat":"projektonea03","nameSearch":"projekt one"},{"id":"loc-003","label":"A-04","display":"A-04","numbers":[],"name":"Megabross","street":"","lat":"36.834755","lon":"-2.430606","search":"megabross a-04","flat":"megabrossa04","nameSearch":"megabross"},{"id":"loc-004","label":"A-05","display":"A-05","numbers":[],"name":"Impact","street":"","lat":"36.834958","lon":"-2.431002","search":"impact a-05","flat":"impacta05","nameSearch":"impact"},{"id":"loc-005","label":"A-06","display":"A-06","numbers":[],"name":"Pulpo","street":"","lat":"36.834956","lon":"-2.430812","search":"pulpo a-06","flat":"pulpoa06","nameSearch":"pulpo"},{"id":"loc-006","label":"A-07","display":"A-07","numbers":[],"name":"Canguro Loco","street":"","lat":"36.834956","lon":"-2.430606","search":"canguro loco a-07","flat":"cangurolocoa07","nameSearch":"canguro loco"},{"id":"loc-007","label":"A-08","display":"A-08","numbers":[],"name":"Dragón La Selva","street":"","lat":"36.835270","lon":"-2.431008","search":"dragon la selva a-08","flat":"dragonlaselvaa08","nameSearch":"dragon la selva"},{"id":"loc-008","label":"A-09","display":"A-09","numbers":[],"name":"Gusano Loco","street":"","lat":"36.835270","lon":"-2.430812","search":"gusano loco a-09","flat":"gusanolocoa09","nameSearch":"gusano loco"},{"id":"loc-009","label":"A-10","display":"A-10","numbers":[],"name":"Triple X Extreme","street":"","lat":"36.835270","lon":"-2.430614","search":"triple x extreme a-10","flat":"triplexextremea10","nameSearch":"triple x extreme"},{"id":"loc-010","label":"A-12","display":"A-12","numbers":[],"name":"Dragón Juguetón","street":"","lat":"36.835665","lon":"-2.431000","search":"dragon jugueton a-12","flat":"dragonjuguetona12","nameSearch":"dragon jugueton"},{"id":"loc-011","label":"A-13","display":"A-13","numbers":[],"name":"Pista de coches","street":"","lat":"36.835664","lon":"-2.430755","search":"pista de coches a-13","flat":"pistadecochesa13","nameSearch":"pista de coches"},{"id":"loc-012","label":"A-14","display":"A-14","numbers":[],"name":"Noria","street":"","lat":"36.834396","lon":"-2.430330","search":"noria a-14","flat":"noriaa14","nameSearch":"noria"},{"id":"loc-013","label":"A-15","display":"A-15","numbers":[],"name":"La Cárcel","street":"","lat":"36.834395","lon":"-2.430180","search":"la carcel a-15","flat":"lacarcela15","nameSearch":"la carcel"},{"id":"loc-014","label":"A-16","display":"A-16","numbers":[],"name":"Gigant","street":"","lat":"36.834395","lon":"-2.430001","search":"gigant a-16","flat":"giganta16","nameSearch":"gigant"},{"id":"loc-015","label":"A-17","display":"A-17","numbers":[],"name":"Látigo Macareno","street":"","lat":"36.834755","lon":"-2.430180","search":"latigo macareno a-17","flat":"latigomacarenoa17","nameSearch":"latigo macareno"},{"id":"loc-016","label":"A-19","display":"A-19","numbers":[],"name":"Maxi Canguro","street":"","lat":"36.834948","lon":"-2.430291","search":"maxi canguro a-19","flat":"maxicanguroa19","nameSearch":"maxi canguro"},{"id":"loc-017","label":"A-20","display":"A-20","numbers":[],"name":"Barca vikinga","street":"","lat":"36.834947","lon":"-2.430119","search":"barca vikinga a-20","flat":"barcavikingaa20","nameSearch":"barca vikinga"},{"id":"loc-018","label":"A-23","display":"A-23","numbers":[],"name":"Inverter","street":"","lat":"36.835268","lon":"-2.429942","search":"inverter a-23","flat":"invertera23","nameSearch":"inverter"},{"id":"loc-019","label":"A-24","display":"A-24","numbers":[],"name":"Ratón Vacilón","street":"","lat":"36.835665","lon":"-2.430114","search":"raton vacilon a-24","flat":"ratonvacilona24","nameSearch":"raton vacilon"},{"id":"loc-020","label":"E-01","display":"E-01","numbers":[],"name":"Tren de los Niños","street":"","lat":"36.834160","lon":"-2.431800","search":"tren de los ninos e-01","flat":"trendelosninose01","nameSearch":"tren de los ninos"},{"id":"loc-021","label":"E-03","display":"E-03","numbers":[],"name":"Wipe Out","street":"","lat":"36.837165","lon":"-2.431370","search":"wipe out e-03","flat":"wipeoute03","nameSearch":"wipe out"},{"id":"loc-022","label":"E-04","display":"E-04","numbers":[],"name":"Gymkana Mario Bross","street":"","lat":"36.837214","lon":"-2.431600","search":"gymkana mario bross e-04","flat":"gymkanamariobrosse04","nameSearch":"gymkana mario bross"},{"id":"loc-023","label":"E-05","display":"E-05","numbers":[],"name":"Camas Jumping","street":"","lat":"36.836966","lon":"-2.431600","search":"camas jumping e-05","flat":"camasjumpinge05","nameSearch":"camas jumping"},{"id":"loc-024","label":"E-06","display":"E-06","numbers":[],"name":"Tren de la Bruja","street":"","lat":"36.837090","lon":"-2.431600","search":"tren de la bruja e-06","flat":"trendelabrujae06","nameSearch":"tren de la bruja"},{"id":"loc-025","label":"E-07","display":"E-07","numbers":[],"name":"Laberinto La Selva","street":"","lat":"36.837338","lon":"-2.431600","search":"laberinto la selva e-07","flat":"laberintolaselvae07","nameSearch":"laberinto la selva"},{"id":"loc-026","label":"E-08","display":"E-08","numbers":[],"name":"Tren de la Bruja","street":"","lat":"36.837475","lon":"-2.431370","search":"tren de la bruja e-08","flat":"trendelabrujae08","nameSearch":"tren de la bruja"},{"id":"loc-027","label":"E-09","display":"E-09","numbers":[],"name":"Camas elásticas","street":"","lat":"36.836856","lon":"-2.431370","search":"camas elasticas e-09","flat":"camaselasticase09","nameSearch":"camas elasticas"},{"id":"loc-028","label":"E-10","display":"E-10","numbers":[],"name":"Tren infantil","street":"","lat":"36.837320","lon":"-2.431370","search":"tren infantil e-10","flat":"treninfantile10","nameSearch":"tren infantil"},{"id":"loc-029","label":"E-11","display":"E-11","numbers":[],"name":"Zoo Acuático","street":"","lat":"36.837011","lon":"-2.431370","search":"zoo acuatico e-11","flat":"zooacuaticoe11","nameSearch":"zoo acuatico"},{"id":"loc-030","label":"E-12","display":"E-12","numbers":[],"name":"Palo Loco","street":"","lat":"36.834160","lon":"-2.431630","search":"palo loco e-12","flat":"palolocoe12","nameSearch":"palo loco"},{"id":"loc-031","label":"I-01","display":"I-01","numbers":[],"name":"Mini Scooter","street":"","lat":"36.834424","lon":"-2.431480","search":"mini scooter i-01","flat":"miniscooteri01","nameSearch":"mini scooter"},{"id":"loc-032","label":"I-02","display":"I-02","numbers":[],"name":"Aladdin Ride","street":"","lat":"36.834633","lon":"-2.431480","search":"aladdin ride i-02","flat":"aladdinridei02","nameSearch":"aladdin ride"},{"id":"loc-033","label":"I-03","display":"I-03","numbers":[],"name":"Pista infantil autos de choque","street":"","lat":"36.834738","lon":"-2.431480","search":"pista infantil autos de choque i-03","flat":"pistainfantilautosdechoquei03","nameSearch":"pista infantil autos de choque"},{"id":"loc-034","label":"I-04","display":"I-04","numbers":[],"name":"Pista americana","street":"","lat":"36.834947","lon":"-2.431480","search":"pista americana i-04","flat":"pistaamericanai04","nameSearch":"pista americana"},{"id":"loc-035","label":"I-05","display":"I-05","numbers":[],"name":"Scalextric","street":"","lat":"36.835052","lon":"-2.431480","search":"scalextric i-05","flat":"scalextrici05","nameSearch":"scalextric"},{"id":"loc-036","label":"I-06","display":"I-06","numbers":[],"name":"Baby infantil","street":"","lat":"36.835157","lon":"-2.431480","search":"baby infantil i-06","flat":"babyinfantili06","nameSearch":"baby infantil"},{"id":"loc-037","label":"I-07","display":"I-07","numbers":[],"name":"Gusanito","street":"","lat":"36.835261","lon":"-2.431480","search":"gusanito i-07","flat":"gusanitoi07","nameSearch":"gusanito"},{"id":"loc-038","label":"I-08","display":"I-08","numbers":[],"name":"Barco pirata infantil","street":"","lat":"36.835366","lon":"-2.431480","search":"barco pirata infantil i-08","flat":"barcopiratainfantili08","nameSearch":"barco pirata infantil"},{"id":"loc-039","label":"I-09","display":"I-09","numbers":[],"name":"Samba Balloon","street":"","lat":"36.835471","lon":"-2.431480","search":"samba balloon i-09","flat":"sambaballooni09","nameSearch":"samba balloon"},{"id":"loc-040","label":"I-10","display":"I-10","numbers":[],"name":"Globo hinchable","street":"","lat":"36.835680","lon":"-2.431480","search":"globo hinchable i-10","flat":"globohinchablei10","nameSearch":"globo hinchable"},{"id":"loc-041","label":"I-14","display":"I-14","numbers":[],"name":"Baby Volador Cadenitas","street":"","lat":"36.834529","lon":"-2.431480","search":"baby volador cadenitas i-14","flat":"babyvoladorcadenitasi14","nameSearch":"baby volador cadenitas"},{"id":"loc-042","label":"I-15","display":"I-15","numbers":[],"name":"Globo hinchable","street":"","lat":"36.834739","lon":"-2.431650","search":"globo hinchable i-15","flat":"globohinchablei15","nameSearch":"globo hinchable"},{"id":"loc-043","label":"I-16","display":"I-16","numbers":[],"name":"Regata","street":"","lat":"36.834844","lon":"-2.431650","search":"regata i-16","flat":"regatai16","nameSearch":"regata"},{"id":"loc-044","label":"I-17","display":"I-17","numbers":[],"name":"Scalextric","street":"","lat":"36.834949","lon":"-2.431650","search":"scalextric i-17","flat":"scalextrici17","nameSearch":"scalextric"},{"id":"loc-045","label":"I-18","display":"I-18","numbers":[],"name":"Baby","street":"","lat":"36.835054","lon":"-2.431650","search":"baby i-18","flat":"babyi18","nameSearch":"baby"},{"id":"loc-046","label":"I-19","display":"I-19","numbers":[],"name":"Mini Noria Granadina","street":"","lat":"36.835159","lon":"-2.431650","search":"mini noria granadina i-19","flat":"mininoriagranadinai19","nameSearch":"mini noria granadina"},{"id":"loc-047","label":"I-20","display":"I-20","numbers":[],"name":"Jumping","street":"","lat":"36.835264","lon":"-2.431650","search":"jumping i-20","flat":"jumpingi20","nameSearch":"jumping"},{"id":"loc-048","label":"I-21","display":"I-21","numbers":[],"name":"Pista infantil","street":"","lat":"36.835369","lon":"-2.431650","search":"pista infantil i-21","flat":"pistainfantili21","nameSearch":"pista infantil"},{"id":"loc-049","label":"I-23","display":"I-23","numbers":[],"name":"Mini Scalextric","street":"","lat":"36.835474","lon":"-2.431650","search":"mini scalextric i-23","flat":"miniscalextrici23","nameSearch":"mini scalextric"},{"id":"loc-050","label":"I-24","display":"I-24","numbers":[],"name":"Rodeo infantil","street":"","lat":"36.835579","lon":"-2.431650","search":"rodeo infantil i-24","flat":"rodeoinfantili24","nameSearch":"rodeo infantil"},{"id":"loc-051","label":"I-25","display":"I-25","numbers":[],"name":"Cangurito","street":"","lat":"36.835576","lon":"-2.431480","search":"cangurito i-25","flat":"canguritoi25","nameSearch":"cangurito"},{"id":"loc-052","label":"I-26","display":"I-26","numbers":[],"name":"Mini Selva Acuática","street":"","lat":"36.834529","lon":"-2.431650","search":"mini selva acuatica i-26","flat":"miniselvaacuaticai26","nameSearch":"mini selva acuatica"},{"id":"loc-053","label":"I-27","display":"I-27","numbers":[],"name":"Baby infantil","street":"","lat":"36.836945","lon":"-2.431372","search":"baby infantil i-27","flat":"babyinfantili27","nameSearch":"baby infantil"},{"id":"loc-054","label":"I-28","display":"I-28","numbers":[],"name":"Ollita loca infantil","street":"","lat":"36.837086","lon":"-2.431327","search":"ollita loca infantil i-28","flat":"ollitalocainfantili28","nameSearch":"ollita loca infantil"},{"id":"loc-055","label":"I-29","display":"I-29","numbers":[],"name":"Supergusano","street":"","lat":"36.835684","lon":"-2.431650","search":"supergusano i-29","flat":"supergusanoi29","nameSearch":"supergusano"},{"id":"loc-056","label":"I-30","display":"I-30","numbers":[],"name":"Súper Mini Olla","street":"","lat":"36.836842","lon":"-2.431600","search":"super mini olla i-30","flat":"superminiollai30","nameSearch":"super mini olla"},{"id":"loc-057","label":"I-31","display":"I-31","numbers":[],"name":"Caballitos Andaluces","street":"","lat":"36.834843","lon":"-2.431480","search":"caballitos andaluces i-31","flat":"caballitosandalucesi31","nameSearch":"caballitos andaluces"},{"id":"loc-058","label":"I-32","display":"I-32","numbers":[],"name":"Montaña rusa de agua","street":"","lat":"36.834424","lon":"-2.431650","search":"montana rusa de agua i-32","flat":"montanarusadeaguai32","nameSearch":"montana rusa de agua"},{"id":"loc-059","label":"CT-01, CT-02, CT-03, CT-04, CT-05","display":"CT-01, CT-02, CT-03, CT-04, CT-05","numbers":[],"name":"Caseta CSIF","street":"","lat":"36.837934","lon":"-2.431370","search":"caseta csif ct-01, ct-02, ct-03, ct-04, ct-05","flat":"casetacsifct01ct02ct03ct04ct05","nameSearch":"caseta csif"},{"id":"loc-060","label":"CT-06, CT-07","display":"CT-06, CT-07","numbers":[],"name":"Sibarita","street":"","lat":"36.838285","lon":"-2.431368","search":"sibarita ct-06, ct-07","flat":"sibaritact06ct07","nameSearch":"sibarita"},{"id":"loc-061","label":"CT-08, CT-09","display":"CT-08, CT-09","numbers":[],"name":"La PCEra / Rincón Cubano","street":"","lat":"36.838627","lon":"-2.431343","search":"la pcera / rincon cubano ct-08, ct-09","flat":"lapcerarinconcubanoct08ct09","nameSearch":"la pcera / rincon cubano"},{"id":"loc-062","label":"CT-17, CT-18, CT-19","display":"CT-17, CT-18, CT-19","numbers":[],"name":"La Pita","street":"","lat":"36.838262","lon":"-2.431001","search":"la pita ct-17, ct-18, ct-19","flat":"lapitact17ct18ct19","nameSearch":"la pita"},{"id":"loc-063","label":"CJ-01","display":"CJ-01","numbers":[],"name":"Arena","street":"","lat":"36.835720","lon":"-2.429620","search":"arena cj-01","flat":"arenacj01","nameSearch":"arena"},{"id":"loc-064","label":"CJ-02, CJ-03 y CJ-04","display":"CJ-02, CJ-03 y CJ-04","numbers":[],"name":"Descaro","street":"","lat":"36.835594","lon":"-2.429621","search":"descaro cj-02, cj-03 y cj-04","flat":"descarocj02cj03ycj04","nameSearch":"descaro"},{"id":"loc-065","label":"CJ-05, CJ-06","display":"CJ-05, CJ-06","numbers":[],"name":"La Suite","street":"","lat":"36.835292","lon":"-2.429620","search":"la suite cj-05, cj-06","flat":"lasuitecj05cj06","nameSearch":"la suite"},{"id":"loc-066","label":"CJ-07, CJ-08","display":"CJ-07, CJ-08","numbers":[],"name":"Viejo Coplero","street":"","lat":"36.834970","lon":"-2.429640","search":"viejo coplero cj-07, cj-08","flat":"viejocoplerocj07cj08","nameSearch":"viejo coplero"},{"id":"loc-067","label":"CJ-09, CJ-10 bis","display":"CJ-09, CJ-10 bis","numbers":[],"name":"Salero Latino","street":"","lat":"36.834907","lon":"-2.429641","search":"salero latino cj-09, cj-10 bis","flat":"salerolatinocj09cj10bis","nameSearch":"salero latino"},{"id":"loc-068","label":"CJ-10","display":"CJ-10","numbers":[],"name":"Guarapo","street":"","lat":"36.834655","lon":"-2.429646","search":"guarapo cj-10","flat":"guarapocj10","nameSearch":"guarapo"},{"id":"loc-069","label":"CJ-11, CJ-12, CJ-13 y CJ-18","display":"CJ-11, CJ-12, CJ-13 y CJ-18","numbers":[],"name":"La Maldita","street":"","lat":"36.834410","lon":"-2.429641","search":"la maldita cj-11, cj-12, cj-13 y cj-18","flat":"lamalditacj11cj12cj13ycj18","nameSearch":"la maldita"},{"id":"loc-070","label":"CJ-14, CJ-15","display":"CJ-14, CJ-15","numbers":[],"name":"LIQ","street":"","lat":"36.836939","lon":"-2.430093","search":"liq cj-14, cj-15","flat":"liqcj14cj15","nameSearch":"liq"},{"id":"loc-071","label":"CJ-16, CJ-17","display":"CJ-16, CJ-17","numbers":[],"name":"Caramelo","street":"","lat":"36.837113","lon":"-2.430198","search":"caramelo cj-16, cj-17","flat":"caramelocj16cj17","nameSearch":"caramelo"},{"id":"loc-072","label":"CJ-19","display":"CJ-19","numbers":[],"name":"Grupo Renta Todo Carpas CJ-19","street":"","lat":"36.834390","lon":"-2.429340","search":"grupo renta todo carpas cj-19 cj-19","flat":"gruporentatodocarpascj19cj19","nameSearch":"grupo renta todo carpas cj-19"},{"id":"loc-073","label":"CJ-20","display":"CJ-20","numbers":[],"name":"Sixti 1982 CJ-20","street":"","lat":"36.834390","lon":"-2.429210","search":"sixti 1982 cj-20 cj-20","flat":"sixti1982cj20cj20","nameSearch":"sixti 1982 cj-20"},{"id":"loc-074","label":"CJ-21, CJ-22, CJ-23","display":"CJ-21, CJ-22, CJ-23","numbers":[],"name":"Maracas","street":"","lat":"36.834452","lon":"-2.429275","search":"maracas cj-21, cj-22, cj-23","flat":"maracascj21cj22cj23","nameSearch":"maracas"},{"id":"loc-075","label":"CJ-24, CJ-25","display":"CJ-24, CJ-25","numbers":[],"name":"La Flaka","street":"","lat":"36.834909","lon":"-2.429260","search":"la flaka cj-24, cj-25","flat":"laflakacj24cj25","nameSearch":"la flaka"},{"id":"loc-076","label":"CJ-26, CJ-27, CJ-28","display":"CJ-26, CJ-27, CJ-28","numbers":[],"name":"Gloria Bendita","street":"","lat":"36.837305","lon":"-2.430254","search":"gloria bendita cj-26, cj-27, cj-28","flat":"gloriabenditacj26cj27cj28","nameSearch":"gloria bendita"},{"id":"loc-077","label":"CM","display":"CM","numbers":[],"name":"Caseta Municipal","street":"","lat":"36.838881","lon":"-2.431014","search":"caseta municipal cm","flat":"casetamunicipalcm","nameSearch":"caseta municipal"},{"id":"loc-078","label":"CM","display":"CM","numbers":[],"name":"Caseta Municipal Escenario","street":"","lat":"36.839264","lon":"-2.430911","search":"caseta municipal escenario cm","flat":"casetamunicipalescenariocm","nameSearch":"caseta municipal escenario"},{"id":"loc-079","label":"CM","display":"CM","numbers":[],"name":"Caseta Municipal Terraza","street":"","lat":"36.838585","lon":"-2.430896","search":"caseta municipal terraza cm","flat":"casetamunicipalterrazacm","nameSearch":"caseta municipal terraza"},{"id":"loc-080","label":"RT-20","display":"RT-20","numbers":[],"name":"El Bombazo","street":"","lat":"36.834056","lon":"-2.4314783","search":"el bombazo rt-20","flat":"elbombazort20","nameSearch":"el bombazo"},{"id":"loc-081","label":"RT-30","display":"RT-30","numbers":[],"name":"Carnicas Las Salinas","street":"","lat":"36.838310","lon":"-2.4318084","search":"carnicas las salinas rt-30","flat":"carnicaslassalinasrt30","nameSearch":"carnicas las salinas"},{"id":"loc-082","label":"RT-10","display":"RT-10","numbers":[],"name":"Rey de los pinchos","street":"","lat":"36.836386","lon":"-2.4308383","search":"rey de los pinchos rt-10","flat":"reydelospinchosrt10","nameSearch":"rey de los pinchos"},{"id":"loc-083","label":"CH-01","display":"CH-01","numbers":[],"name":"Churrería Moreno 1","street":"","lat":"36.836158","lon":"-2.4309612","search":"churreria moreno 1 ch-01","flat":"churreriamoreno1ch01","nameSearch":"churreria moreno 1"},{"id":"loc-084","label":"CH-02","display":"CH-02","numbers":[],"name":"Churrería Moreno 2","street":"","lat":"36.836581","lon":"-2.4299959","search":"churreria moreno 2 ch-02","flat":"churreriamoreno2ch02","nameSearch":"churreria moreno 2"},{"id":"loc-085","label":"CH-03","display":"CH-03","numbers":[],"name":"Churrería Hermanos Manzano 2","street":"","lat":"36.839155","lon":"-2.4314413","search":"churreria hermanos manzano 2 ch-03","flat":"churreriahermanosmanzano2ch03","nameSearch":"churreria hermanos manzano 2"},{"id":"loc-086","label":"CH-04","display":"CH-04","numbers":[],"name":"Churrería Hermanos Manzano 1","street":"","lat":"36.838636","lon":"-2.4316852","search":"churreria hermanos manzano 1 ch-04","flat":"churreriahermanosmanzano1ch04","nameSearch":"churreria hermanos manzano 1"},{"id":"loc-087","label":"VN-03","display":"VN-03","numbers":[],"name":"El Maño","street":"","lat":"36.836586","lon":"-2.4303518","search":"el mano vn-03","flat":"elmanovn03","nameSearch":"el mano"},{"id":"loc-088","label":"VN-02","display":"VN-02","numbers":[],"name":"Mi Niña Rocio","street":"","lat":"36.836583","lon":"-2.4310814","search":"mi nina rocio vn-02","flat":"mininarociovn02","nameSearch":"mi nina rocio"},{"id":"loc-089","label":"VN-04","display":"VN-04","numbers":[],"name":"Vinos Andalucía","street":"","lat":"36.837983","lon":"-2.4316564","search":"vinos andalucia vn-04","flat":"vinosandaluciavn04","nameSearch":"vinos andalucia"},{"id":"loc-090","label":"VN-01","display":"VN-01","numbers":[],"name":"Los dos Maños","street":"","lat":"36.836156","lon":"-2.4305177","search":"los dos manos vn-01","flat":"losdosmanosvn01","nameSearch":"los dos manos"},{"id":"loc-091","label":"Ayun","display":"Ayun","numbers":[],"name":"Dependencias Municipales","street":"","lat":"36.833743","lon":"-2.431943","search":"dependencias municipales ayun","flat":"dependenciasmunicipalesayun","nameSearch":"dependencias municipales"},{"id":"loc-092","label":"C","display":"C","numbers":[],"name":"Circo","street":"","lat":"36.833157","lon":"-2.4318659","search":"circo c","flat":"circoc","nameSearch":"circo"},{"id":"loc-093","label":"PV","display":"PV","numbers":[],"name":"Punto violeta","street":"","lat":"36.834327","lon":"-2.4299033","search":"punto violeta pv","flat":"puntovioletapv","nameSearch":"punto violeta"},{"id":"loc-094","label":"Acceso","display":"Acceso","numbers":[],"name":"Portada / Puerta Principal - Exterior","street":"","lat":"36.836315","lon":"-2.431811","search":"portada / puerta principal - exterior acceso","flat":"portadapuertaprincipalexterioracceso","nameSearch":"portada / puerta principal - exterior"},{"id":"loc-095","label":"Acceso","display":"Acceso","numbers":[],"name":"Portada / Puerta Principal - Interior","street":"","lat":"36.836328","lon":"-2.431411","search":"portada / puerta principal - interior acceso","flat":"portadapuertaprincipalinterioracceso","nameSearch":"portada / puerta principal - interior"},{"id":"loc-096","label":"Acceso","display":"Acceso","numbers":[],"name":"Puerta Oeste / Acceso Servicios / Rio","street":"","lat":"36.837690","lon":"-2.430191","search":"puerta oeste / acceso servicios / rio acceso","flat":"puertaoesteaccesoserviciosrioacceso","nameSearch":"puerta oeste / acceso servicios / rio"},{"id":"loc-097","label":"Acceso","display":"Acceso","numbers":[],"name":"Puerta Sur / Club Natación","street":"","lat":"36.832710","lon":"-2.431231","search":"puerta sur / club natacion acceso","flat":"puertasurclubnatacionacceso","nameSearch":"puerta sur / club natacion"},{"id":"loc-098","label":"Acceso","display":"Acceso","numbers":[],"name":"Puerta Norte / Electrica","street":"","lat":"36.839428","lon":"-2.432071","search":"puerta norte / electrica acceso","flat":"puertanorteelectricaacceso","nameSearch":"puerta norte / electrica"},{"id":"loc-099","label":"Acceso","display":"Acceso","numbers":[],"name":"Puerta Este / Rotonda","street":"","lat":"36.837715","lon":"-2.431545","search":"puerta este / rotonda acceso","flat":"puertaesterotondaacceso","nameSearch":"puerta este / rotonda"},{"id":"loc-100","label":"Acceso","display":"Acceso","numbers":[],"name":"Puerta Sureste / Camino la Goleta","street":"","lat":"36.834276","lon":"-2.432109","search":"puerta sureste / camino la goleta acceso","flat":"puertasurestecaminolagoletaacceso","nameSearch":"puerta sureste / camino la goleta"},{"id":"loc-101","label":"Acceso","display":"Acceso","numbers":[],"name":"Acceso Intermedio Sureste","street":"","lat":"36.835492","lon":"-2.431771","search":"acceso intermedio sureste acceso","flat":"accesointermediosuresteacceso","nameSearch":"acceso intermedio sureste"},{"id":"loc-102","label":"Acceso","display":"Acceso","numbers":[],"name":"Acceso Intermedio Noreste","street":"","lat":"36.838643","lon":"-2.432028","search":"acceso intermedio noreste acceso","flat":"accesointermedionoresteacceso","nameSearch":"acceso intermedio noreste"},{"id":"loc-103","label":"Aseos Públicos","display":"Aseos Públicos","numbers":[],"name":"Aseos zona juvenil central","street":"","lat":"36.835843","lon":"-2.429393","search":"aseos zona juvenil central aseos publicos","flat":"aseoszonajuvenilcentralaseospublicos","nameSearch":"aseos zona juvenil central"},{"id":"loc-104","label":"Aseos Públicos","display":"Aseos Públicos","numbers":[],"name":"Aseos zona restauración","street":"","lat":"36.836831","lon":"-2.430269","search":"aseos zona restauracion aseos publicos","flat":"aseoszonarestauracionaseospublicos","nameSearch":"aseos zona restauracion"},{"id":"loc-105","label":"Aseos Públicos","display":"Aseos Públicos","numbers":[],"name":"Aseos extremo juvenil","street":"","lat":"36.835108","lon":"-2.429096","search":"aseos extremo juvenil aseos publicos","flat":"aseosextremojuvenilaseospublicos","nameSearch":"aseos extremo juvenil"},{"id":"loc-106","label":"Aseos Públicos","display":"Aseos Públicos","numbers":[],"name":"Aseos junto a dependencias/circo","street":"","lat":"36.833670","lon":"-2.431398","search":"aseos junto a dependencias/circo aseos publicos","flat":"aseosjuntoadependenciascircoaseospublicos","nameSearch":"aseos junto a dependencias/circo"},{"id":"loc-107","label":"Aseos Públicos","display":"Aseos Públicos","numbers":[],"name":"Aseos zona tradicional","street":"","lat":"36.837214","lon":"-2.431791","search":"aseos zona tradicional aseos publicos","flat":"aseoszonatradicionalaseospublicos","nameSearch":"aseos zona tradicional"}];
+const STREETS = [];
+
+/* Textos visibles. Centralizados para que build.py compruebe que la
+   tipografía subconjuntada cubre todos sus caracteres. */
+const TEXT = {
+  approx: 'Quizá buscabas',
+  emptyTitle: 'Sin coincidencias',
+  emptyBody: 'Comprueba el número o escribe menos letras del nombre.',
+  placeholder: 'Nombre o número',
+  route: 'Recorrido de la calle',
+  copied: 'Copiado'
+};
+
+/* Etiquetas para lectores de pantalla. No las dibuja la tipografía, así que
+   no entran en la validación de cobertura de build.py. */
+const LABEL = {
+  open: 'Ver en el mapa ',
+  route: 'Ver el recorrido de la calle ',
+  copy: 'Copiar coordenadas de ',
+  copied: 'Coordenadas copiadas'
+};
+
+/* Cuánto se queda en pantalla la confirmación de copiado. */
+const COPIED_MS = 1400;
+
+/* Ficha de lugar de Google Maps: mapa, punto exacto y accesos a «Cómo llegar»
+   e «Iniciar» dentro de la propia app. Ver docs/03-navegacion-maps.md. */
+const MAPS = 'https://www.google.com/maps/search/?api=1&query=';
+
+/* Trazado de una calle. Google Maps no sabe dibujar una línea, así que se le
+   pide la ruta a pie entre los dos extremos: el camino que pinta es la calle.
+   A pie y no en coche porque el recinto es peatonal. */
+const MAPS_DIR = 'https://www.google.com/maps/dir/?api=1&travelmode=walking';
+
+/* lucide · map-pin — el destino es un punto en el mapa, no una ruta. */
+const PIN_BODY = 'M20 10.4c0 5.6-8 11.6-8 11.6s-8-6-8-11.6a8 8 0 0 1 16 0Z';
+/* lucide · route — el destino es un recorrido, no un punto. */
+const ROUTE_LINE = 'M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15';
+const NS = 'http://www.w3.org/2000/svg';
+
+/* Con menos caracteres, cualquier calle coincide y estorban al teclear. */
+const STREET_MIN_TERM = 3;
+
+/* Coincidencia aproximada: solo actúa cuando la búsqueda literal no devuelve
+   nada, y nunca sobre números. Ver docs/02-datos.md. */
+const FUZZY_MIN_TERM = 3;    // por debajo, cualquier nombre se parece al término
+const FUZZY_MAX_SCORE = 0.6; // 0 es idéntico; por encima ya no es una errata
+const FUZZY_MAX_RESULTS = 8;
+
+const FUZZY = {
+  threshold: 0.4,
+  ignoreLocation: true,   // la errata puede estar en cualquier parte del nombre
+  minMatchCharLength: 2,  // por encima, una errata parte la coincidencia y se pierde
+  includeScore: true
+};
+
+const fuse = new Fuse(LOCATIONS, Object.assign({
+  keys: ['nameSearch']    // solo el nombre: los números tienen su propia rama
+}, FUZZY));
+
+const fuseStreets = STREETS.length
+  ? new Fuse(STREETS, Object.assign({ keys: ['search'] }, FUZZY))
+  : null;
+
+const q = document.getElementById('q');
+const list = document.getElementById('list');
+const empty = document.getElementById('empty');
+const meta = document.getElementById('meta');
+const body = document.body;
+
+/** Minúsculas, sin tildes, comillas normalizadas, espacios colapsados. */
+function normalize(s){
+  return s.toLowerCase()
+    .replace(/[‘’]/g, "'")
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ').trim();
+}
+
+/** Solo letras y dígitos. Ver flatten() en scripts/build.py: es lo que hace
+    que «A01» encuentre «A-01» aunque falte el guion. */
+function flatten(s){
+  return normalize(s).replace(/[^a-z0-9]/g, '');
+}
+
+function mapsUrl(loc){
+  return MAPS + loc.lat + ',' + loc.lon;
+}
+
+function streetUrl(st){
+  const url = MAPS_DIR + '&origin=' + st.start + '&destination=' + st.end;
+  return st.waypoints.length ? url + '&waypoints=' + st.waypoints.join('|') : url;
+}
+
+/**
+ * Filtra y ordena. Devuelve { streets, exact, approx }: cada grupo viaja
+ * aparte porque en pantalla se presentan de forma distinta.
+ *
+ * Consulta numérica: número exacto, número que empieza por el término, y
+ *   nombre que lo contiene. Nunca subcadena ni aproximación sobre el número
+ *   —escribir 39 no puede devolver la 139— y un número inexistente devuelve
+ *   lista vacía. Llevar la unidad a la ubicación equivocada es el único fallo
+ *   grave que esta aplicación puede cometer.
+ * Consulta de texto: empieza por, contiene, y contiene una vez aplanado.
+ *   Solo si nada de eso devuelve resultados se ofrecen aproximaciones.
+ */
+function search(raw){
+  const term = normalize(raw);
+  if (!term) return { streets: [], exact: LOCATIONS, approx: [] };
+
+  const exact = [], prefix = [], contains = [];
+
+  if (/^\d+$/.test(term)){
+    const num = parseInt(term, 10);
+    for (const loc of LOCATIONS){
+      if (loc.numbers.includes(num)) exact.push(loc);
+      else if (loc.numbers.some(n => String(n).startsWith(term))) prefix.push(loc);
+      else if (loc.nameSearch.includes(term)) contains.push(loc);
+    }
+    // Una consulta numérica nunca trae calles ni aproximaciones.
+    return { streets: [], exact: exact.concat(prefix, contains), approx: [] };
+  }
+
+  const flat = flatten(raw);
+
+  const streets = term.length < STREET_MIN_TERM
+    ? []
+    : STREETS.filter(st => st.flat.includes(flat));
+
+  // Tercer nivel literal: sin espacios ni puntuación, para que un separador
+  // de más o de menos no deje la pantalla vacía.
+  const loose = [];
+  for (const loc of LOCATIONS){
+    const i = loc.search.indexOf(term);
+    if (i === 0) prefix.push(loc);
+    else if (i > 0) contains.push(loc);
+    else if (flat && loc.flat.includes(flat)) loose.push(loc);
+  }
+
+  const literal = prefix.concat(contains, loose);
+  const nada = !literal.length && !streets.length;
+  if (!nada || term.length < FUZZY_MIN_TERM) return { streets, exact: literal, approx: [] };
+
+  // Respaldo aproximado: también sobre las calles, no solo sobre los nombres.
+  const approxStreets = fuseStreets
+    ? fuseStreets.search(term)
+        .filter(r => r.score <= FUZZY_MAX_SCORE)
+        .map(r => r.item)
+    : [];
+
+  const approx = fuse.search(term)
+    .filter(r => r.score <= FUZZY_MAX_SCORE)
+    .slice(0, FUZZY_MAX_RESULTS)
+    .map(r => r.item);
+
+  return { streets: approxStreets, exact: [], approx };
+}
+
+const unit = n => n + (n === 1 ? ' ubicación' : ' ubicaciones');
+
+/** Icono SVG de trazo a partir de una o varias rutas. */
+function icon(cls, ...paths){
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', cls);
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  for (const d of paths){
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', d);
+    svg.append(path);
+  }
+  return svg;
+}
+
+function row(loc){
+  const li = document.createElement('li');
+  li.className = 'row';
+
+  const num = document.createElement('span');
+  num.className = 'num';
+  num.textContent = loc.display;
+
+  const nom = document.createElement('span');
+  nom.className = 'nom';
+  nom.textContent = loc.name;
+
+  const st = document.createElement('span');
+  st.className = 'st';
+  st.textContent = loc.street;
+
+  // Único elemento pulsable de la fila además del botón, y el único que no
+  // navega: copiar no lleva a nadie a ningún sitio.
+  const co = document.createElement('button');
+  co.className = 'co';
+  co.type = 'button';
+  co.textContent = loc.lat + ', ' + loc.lon;
+  co.dataset.coords = co.textContent;
+  co.setAttribute('aria-label', LABEL.copy + loc.name);
+
+  const txt = document.createElement('span');
+  txt.className = 'txt';
+  txt.append(nom, st, co);
+
+  const svg = icon('ico', PIN_BODY);
+  const dot = document.createElementNS(NS, 'circle');
+  dot.setAttribute('cx', '12');
+  dot.setAttribute('cy', '10.2');
+  dot.setAttribute('r', '2.9');
+  svg.append(dot);
+
+  const pill = document.createElement('span');
+  pill.className = 'pill';
+  pill.append(svg);
+
+  // Único elemento pulsable de la fila.
+  const a = document.createElement('a');
+  a.className = 'go';
+  a.href = mapsUrl(loc);
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.setAttribute('aria-label',
+    LABEL.open + loc.name + ', ubicación ' + loc.label + ', ' + loc.street);
+  a.append(pill);
+
+  li.append(num, txt, a);
+  return li;
+}
+
+/**
+ * Fila de calle. Va arriba, sin identificador en la columna de la izquierda
+ * —una calle no tiene número— y con el nombre en el color de acento, para que
+ * no se confunda con una ubicación sin número. El icono del botón es un
+ * recorrido y no un punto, porque lo que abre es un trazado.
+ */
+function streetRow(st){
+  const li = document.createElement('li');
+  li.className = 'row route';
+
+  const num = document.createElement('span');
+  num.className = 'num';
+
+  const nom = document.createElement('span');
+  nom.className = 'nom';
+  nom.textContent = st.name;
+
+  const sub = document.createElement('span');
+  sub.className = 'st';
+  sub.textContent = TEXT.route + ' · ' + unit(st.count);
+
+  const txt = document.createElement('span');
+  txt.className = 'txt';
+  txt.append(nom, sub);
+
+  const pill = document.createElement('span');
+  pill.className = 'pill';
+  pill.append(icon('ico', ROUTE_LINE, 'M6 16.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z',
+                    'M18 2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z'));
+
+  const a = document.createElement('a');
+  a.className = 'go';
+  a.href = streetUrl(st);
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.setAttribute('aria-label', LABEL.route + st.name);
+  a.append(pill);
+
+  li.append(num, txt, a);
+  return li;
+}
+
+function separator(){
+  const li = document.createElement('li');
+  li.className = 'sep';
+  li.setAttribute('aria-hidden', 'true');
+  li.textContent = TEXT.approx;
+  return li;
+}
+
+function render(result){
+  const frag = document.createDocumentFragment();
+  for (const st of result.streets) frag.append(streetRow(st));
+  for (const loc of result.exact) frag.append(row(loc));
+  if (result.approx.length){
+    frag.append(separator());
+    for (const loc of result.approx) frag.append(row(loc));
+  }
+  list.replaceChildren(frag);
+
+  const total = result.streets.length + result.exact.length + result.approx.length;
+  empty.hidden = total > 0;
+
+  meta.textContent = total === 0
+    ? TEXT.emptyTitle
+    : result.approx.length
+      ? unit(result.approx.length) + ' ' + TEXT.approx.toLowerCase()
+      : unit(result.exact.length + result.streets.length);
+}
+
+function update(){
+  const v = q.value;
+  body.classList.toggle('has-query', v.length > 0);
+  render(search(v));
+}
+
+/**
+ * Copia al portapapeles. El API moderno solo existe en contextos seguros
+ * (https o localhost); si la app se abre desde un archivo o por http, se
+ * recurre al método antiguo, que sigue funcionando en todos los navegadores.
+ */
+function copyText(text){
+  if (navigator.clipboard && window.isSecureContext){
+    return navigator.clipboard.writeText(text);
+  }
+  return new Promise((resolve, reject) => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:-100px;opacity:0';
+    document.body.append(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    ok ? resolve() : reject(new Error('copy'));
+  });
+}
+
+/* El texto cambia a «Copiado» un momento: sin icono que lo anuncie, la
+   confirmación es lo único que dice que ha pasado algo. */
+list.addEventListener('click', e => {
+  const btn = e.target.closest('.co');
+  if (!btn) return;
+  copyText(btn.dataset.coords).then(() => {
+    btn.textContent = TEXT.copied;
+    btn.classList.add('done');
+    meta.textContent = LABEL.copied;
+    clearTimeout(btn.timer);
+    btn.timer = setTimeout(() => {
+      btn.textContent = btn.dataset.coords;
+      btn.classList.remove('done');
+    }, COPIED_MS);
+  }).catch(() => {});
+});
+
+q.addEventListener('input', update);
+q.addEventListener('search', update);
+document.getElementById('clear').addEventListener('click', () => {
+  q.value = '';
+  update();
+  q.focus();
+});
+q.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ q.value = ''; update(); }
+});
+
+q.placeholder = TEXT.placeholder;
+
+const emptyTitle = document.createElement('b');
+emptyTitle.textContent = TEXT.emptyTitle;
+empty.append(emptyTitle, document.createTextNode(TEXT.emptyBody));
+
+update();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

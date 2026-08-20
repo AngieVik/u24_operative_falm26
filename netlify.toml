@@ -1,0 +1,57 @@
+# Configuración de despliegue en Netlify.
+#
+# Se publica SOLO dist/, que genera `python3 scripts/build.py` en local y se
+# commitea ya construido. Los datos de origen, la documentación, las plantillas
+# y los originales de marca se quedan en el repositorio, fuera de internet.
+
+[build]
+  publish = "dist"
+  command = ""
+
+# ── Service worker ────────────────────────────────────────────────────────────
+# Crítico. Por defecto el navegador cachea sw.js hasta 24 h: si se cachea, los
+# móviles del equipo pueden quedarse con la versión anterior de la app durante
+# un día entero. Con un listado de ubicaciones que puede corregirse con el
+# operativo ya en marcha, eso es inaceptable.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, no-cache, no-store, must-revalidate"
+    Service-Worker-Allowed = "/"
+
+# ── HTML y manifiesto ─────────────────────────────────────────────────────────
+# Se revalidan siempre para que un despliegue nuevo llegue en la primera visita
+# con red. El contenido real lo sirve el service worker desde caché.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json; charset=utf-8"
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ── Iconos ────────────────────────────────────────────────────────────────────
+# Inmutables: si cambian, cambia su nombre.
+[[headers]]
+  for = "/icons/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ── Cabeceras globales ────────────────────────────────────────────────────────
+# Herramienta operativa interna: no debe indexarse ni incrustarse en terceros.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "geolocation=(), camera=(), microphone=(), interest-cohort=()"

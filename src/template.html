@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>U24 · Buscador de ubicaciones</title>
+<meta name="description" content="Buscador de ubicaciones del operativo sanitario U24.">
+<meta name="theme-color" content="#0F1011">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="U24">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+/* Roboto subconjuntada a los caracteres que la app puede mostrar.
+   Empotrada para que funcione sin cobertura y sin peticiones a terceros. */
+@font-face{font-family:Roboto;font-style:normal;font-weight:400;font-display:block;
+  src:url(data:font/woff2;base64,__FONT_400__) format('woff2')}
+@font-face{font-family:Roboto;font-style:normal;font-weight:500;font-display:block;
+  src:url(data:font/woff2;base64,__FONT_500__) format('woff2')}
+@font-face{font-family:Roboto;font-style:normal;font-weight:700;font-display:block;
+  src:url(data:font/woff2;base64,__FONT_700__) format('woff2')}
+
+:root{
+  --bg:#0F1011;
+  --surface:#17181A;
+  --field:#1B1D1F;
+  --border:#2B2E31;
+  --rule:#212325;
+  --accent:#FFC72C;
+  --accent-soft:rgba(255,199,44,.12);
+  --accent-line:rgba(255,199,44,.30);
+  --text:#F2F3F4;
+  --muted:#9A9EA3;
+  --faint:#8E9398;
+  --pad:16px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Roboto,system-ui,sans-serif;
+  font-size:16px;line-height:1.25;
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.ico{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── Cabecera ─────────────────────────────────────────
+   Emblema, buscador y rótulo. Único bloque siempre en pantalla. */
+.head{
+  position:sticky;top:0;z-index:10;
+  background:var(--bg);
+  padding-top:env(safe-area-inset-top);
+  border-bottom:1px solid var(--border);
+}
+.bar{display:flex;align-items:center;gap:13px;padding:10px var(--pad) 12px}
+.bar .mark{flex:none;width:66px;height:66px;display:block}
+.stack{flex:1;min-width:0}
+/* Rótulo del operativo en curso. */
+.sub{
+  margin:6px 0 0;padding:0 3px;
+  font-size:12px;font-weight:500;letter-spacing:.04em;
+  color:var(--faint);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* ── Buscador ─────────────────────────────────────── */
+.field{
+  position:relative;display:flex;align-items:center;
+  background:var(--field);
+  border:1px solid var(--border);border-radius:12px;
+}
+.field:focus-within{border-color:var(--accent);background:var(--surface)}
+.field .lead{
+  position:absolute;left:14px;width:20px;height:20px;
+  color:var(--faint);pointer-events:none;
+}
+.field:focus-within .lead{color:var(--accent)}
+#q{
+  display:block;width:100%;height:54px;
+  padding:0 54px 0 44px;
+  background:none;border:0;outline:none;border-radius:12px;
+  font-family:inherit;font-size:19px;font-weight:500;color:var(--text);
+  letter-spacing:.01em;
+}
+#q::placeholder{color:var(--faint);font-weight:400}
+#clear{
+  position:absolute;right:3px;
+  width:48px;height:48px;display:none;place-items:center;
+  background:none;border:0;padding:0;color:var(--muted);cursor:pointer;
+}
+#clear .ico{width:19px;height:19px}
+#clear:active{color:var(--text)}
+body.has-query #clear{display:grid}
+
+/* El recuento no se pinta: durante un aviso no aporta. Se mantiene como
+   región activa para lectores de pantalla. */
+.sr{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+
+/* ── Lista ────────────────────────────────────────── */
+ul{list-style:none;margin:0;padding:0}
+
+/* La fila no es pulsable: solo lo es el botón de la derecha. Una fila-enlace
+   se activa sola al desplazar la lista con el dedo.
+
+   Sin líneas de separación: lo que agrupa las tres líneas de una ubicación es
+   la proximidad, 6,5 px de hueco óptico dentro del bloque contra 13,75 px
+   entre bloques. Cambiar una distancia obliga a recalcular la otra.
+
+   Sin relleno vertical, para que el botón ocupe la altura completa de la fila.
+   Sin selección de texto, porque al desplazar con el dedo el arrastre la
+   inicia y llena la pantalla de resaltes. */
+.row{
+  display:flex;align-items:center;gap:12px;
+  min-height:72px;padding:0 0 0 var(--pad);
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+}
+
+/* Ancho fijo, para que los nombres se alineen en columna con etiquetas tan
+   dispares como "3", "180–186" o "S/N". */
+.num{
+  flex:none;width:66px;
+  font-size:15px;font-weight:700;
+  font-variant-numeric:tabular-nums;letter-spacing:.02em;
+  color:var(--accent);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* Altura de línea fija en píxeles, no proporcional: el hueco que se ve es el
+   margen más el aire interno de cada caja, (altura de línea − tamaño) / 2, y
+   con valores proporcionales ese aire varía con cada tamaño de letra. Con
+   estos, los dos huecos miden 6,5 px exactos. */
+.txt{flex:1;min-width:0;display:block}
+.nom{
+  display:block;
+  font-size:16.5px;line-height:21px;font-weight:500;letter-spacing:.005em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.st{
+  display:block;margin-top:2.5px;
+  font-size:12.5px;line-height:16px;font-weight:400;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* Coordenadas a la vista, y copiables al tocarlas: cuando Google Maps no
+   carga son lo único que queda para dictar la posición por radio.
+   Los márgenes negativos compensan el relleno, que da un objetivo táctil de
+   32 px sobre un texto de 16: así la caja ocupa en el flujo lo mismo que una
+   línea de texto y el ritmo vertical no se altera. */
+.co{
+  display:block;
+  margin:-5.25px 0 -8px -8px;padding:8px;
+  background:none;border:0;border-radius:7px;
+  font-family:inherit;text-align:left;
+  font-size:12px;line-height:16px;font-weight:400;color:var(--faint);
+  font-variant-numeric:tabular-nums;letter-spacing:.02em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:100%;cursor:pointer;
+}
+.co:active{color:var(--text)}
+.co:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.co.done{color:var(--accent)}
+/* Botón de ubicación. Ocupa toda la altura de la fila y 64 px de ancho:
+   el objetivo real es mayor que la pastilla que se ve. */
+.go{
+  flex:none;width:64px;align-self:stretch;
+  display:grid;place-items:center;
+  color:var(--accent);text-decoration:none;
+}
+.pill{
+  display:grid;place-items:center;
+  width:40px;height:40px;border-radius:11px;
+  background:var(--accent-soft);border:1px solid var(--accent-line);
+}
+.pill .ico{width:19px;height:19px}
+
+/* La fila de calle se ve igual que las demás: lo que la distingue es su
+   segunda línea y el icono de recorrido del botón. */
+.go:active .pill{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.go:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+
+/* ── Separador de coincidencias aproximadas ───────────
+   Lo que hay debajo se parece a lo tecleado; no coincide con ello. */
+.sep{
+  padding:15px var(--pad) 7px;
+  font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);
+  background:var(--bg);
+}
+
+/* ── Sin resultados ───────────────────────────────── */
+.empty{padding:30px var(--pad);color:var(--muted);font-size:14px;line-height:1.45}
+.empty b{display:block;color:var(--text);font-size:16.5px;font-weight:500;margin-bottom:6px}
+.empty[hidden]{display:none}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (min-width:600px){
+  .bar,ul,.empty{max-width:600px;margin-inline:auto}
+}
+</style>
+</head>
+<body>
+
+<header class="head">
+  <div class="bar">
+    __LOGO__
+    <div class="stack">
+      <div class="field">
+        <svg class="ico lead" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7.5"/><path d="M20.5 20.5l-4.2-4.2"/>
+        </svg>
+        <input id="q" type="text"
+               autocomplete="off" autocorrect="off" autocapitalize="off"
+               spellcheck="false" inputmode="search" enterkeyhint="search"
+               aria-label="Buscar ubicación por nombre o número" aria-controls="list" autofocus>
+        <button id="clear" type="button" aria-label="Borrar búsqueda">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p class="sub">__OPERATIVO__</p>
+    </div>
+  </div>
+
+  <p class="sr" id="meta" role="status" aria-live="polite"></p>
+</header>
+
+<main>
+  <ul id="list"></ul>
+  <div class="empty" id="empty" hidden></div>
+</main>
+
+<script>
+/* Fuse.js — motor de coincidencia aproximada. Se empotra desde src/vendor/ y
+   se envuelve aquí porque el paquete se distribuye como módulo CommonJS: sin
+   este envoltorio no expondría nada a la página. */
+const Fuse = (function(){
+  const module = { exports:{} }, exports = module.exports;
+  __FUSE__
+  return module.exports;
+})();
+
+/* Generado desde data.md por scripts/build.py. No editar a mano. */
+const LOCATIONS = __LOCATIONS__;
+const STREETS = __STREETS__;
+
+/* Textos visibles. Centralizados para que build.py compruebe que la
+   tipografía subconjuntada cubre todos sus caracteres. */
+const TEXT = {
+  approx: 'Quizá buscabas',
+  emptyTitle: 'Sin coincidencias',
+  emptyBody: 'Comprueba el número o escribe menos letras del nombre.',
+  placeholder: 'Nombre o número',
+  route: 'Recorrido de la calle',
+  copied: 'Copiado'
+};
+
+/* Etiquetas para lectores de pantalla. No las dibuja la tipografía, así que
+   no entran en la validación de cobertura de build.py. */
+const LABEL = {
+  open: 'Ver en el mapa ',
+  route: 'Ver el recorrido de la calle ',
+  copy: 'Copiar coordenadas de ',
+  copied: 'Coordenadas copiadas'
+};
+
+/* Cuánto se queda en pantalla la confirmación de copiado. */
+const COPIED_MS = 1400;
+
+/* Ficha de lugar de Google Maps: mapa, punto exacto y accesos a «Cómo llegar»
+   e «Iniciar» dentro de la propia app. Ver docs/03-navegacion-maps.md. */
+const MAPS = 'https://www.google.com/maps/search/?api=1&query=';
+
+/* Trazado de una calle. Google Maps no sabe dibujar una línea, así que se le
+   pide la ruta a pie entre los dos extremos: el camino que pinta es la calle.
+   A pie y no en coche porque el recinto es peatonal. */
+const MAPS_DIR = 'https://www.google.com/maps/dir/?api=1&travelmode=walking';
+
+/* lucide · map-pin — el destino es un punto en el mapa, no una ruta. */
+const PIN_BODY = 'M20 10.4c0 5.6-8 11.6-8 11.6s-8-6-8-11.6a8 8 0 0 1 16 0Z';
+/* lucide · route — el destino es un recorrido, no un punto. */
+const ROUTE_LINE = 'M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15';
+const NS = 'http://www.w3.org/2000/svg';
+
+/* Con menos caracteres, cualquier calle coincide y estorban al teclear. */
+const STREET_MIN_TERM = 3;
+
+/* Coincidencia aproximada: solo actúa cuando la búsqueda literal no devuelve
+   nada, y nunca sobre números. Ver docs/02-datos.md. */
+const FUZZY_MIN_TERM = 3;    // por debajo, cualquier nombre se parece al término
+const FUZZY_MAX_SCORE = 0.6; // 0 es idéntico; por encima ya no es una errata
+const FUZZY_MAX_RESULTS = 8;
+
+const FUZZY = {
+  threshold: 0.4,
+  ignoreLocation: true,   // la errata puede estar en cualquier parte del nombre
+  minMatchCharLength: 2,  // por encima, una errata parte la coincidencia y se pierde
+  includeScore: true
+};
+
+const fuse = new Fuse(LOCATIONS, Object.assign({
+  keys: ['nameSearch']    // solo el nombre: los números tienen su propia rama
+}, FUZZY));
+
+const fuseStreets = STREETS.length
+  ? new Fuse(STREETS, Object.assign({ keys: ['search'] }, FUZZY))
+  : null;
+
+const q = document.getElementById('q');
+const list = document.getElementById('list');
+const empty = document.getElementById('empty');
+const meta = document.getElementById('meta');
+const body = document.body;
+
+/** Minúsculas, sin tildes, comillas normalizadas, espacios colapsados. */
+function normalize(s){
+  return s.toLowerCase()
+    .replace(/[‘’]/g, "'")
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ').trim();
+}
+
+/** Solo letras y dígitos. Ver flatten() en scripts/build.py: es lo que hace
+    que «A01» encuentre «A-01» aunque falte el guion. */
+function flatten(s){
+  return normalize(s).replace(/[^a-z0-9]/g, '');
+}
+
+function mapsUrl(loc){
+  return MAPS + loc.lat + ',' + loc.lon;
+}
+
+function streetUrl(st){
+  const url = MAPS_DIR + '&origin=' + st.start + '&destination=' + st.end;
+  return st.waypoints.length ? url + '&waypoints=' + st.waypoints.join('|') : url;
+}
+
+/**
+ * Filtra y ordena. Devuelve { streets, exact, approx }: cada grupo viaja
+ * aparte porque en pantalla se presentan de forma distinta.
+ *
+ * Consulta numérica: número exacto, número que empieza por el término, y
+ *   nombre que lo contiene. Nunca subcadena ni aproximación sobre el número
+ *   —escribir 39 no puede devolver la 139— y un número inexistente devuelve
+ *   lista vacía. Llevar la unidad a la ubicación equivocada es el único fallo
+ *   grave que esta aplicación puede cometer.
+ * Consulta de texto: empieza por, contiene, y contiene una vez aplanado.
+ *   Solo si nada de eso devuelve resultados se ofrecen aproximaciones.
+ */
+function search(raw){
+  const term = normalize(raw);
+  if (!term) return { streets: [], exact: LOCATIONS, approx: [] };
+
+  const exact = [], prefix = [], contains = [];
+
+  if (/^\d+$/.test(term)){
+    const num = parseInt(term, 10);
+    for (const loc of LOCATIONS){
+      if (loc.numbers.includes(num)) exact.push(loc);
+      else if (loc.numbers.some(n => String(n).startsWith(term))) prefix.push(loc);
+      else if (loc.nameSearch.includes(term)) contains.push(loc);
+    }
+    // Una consulta numérica nunca trae calles ni aproximaciones.
+    return { streets: [], exact: exact.concat(prefix, contains), approx: [] };
+  }
+
+  const flat = flatten(raw);
+
+  const streets = term.length < STREET_MIN_TERM
+    ? []
+    : STREETS.filter(st => st.flat.includes(flat));
+
+  // Tercer nivel literal: sin espacios ni puntuación, para que un separador
+  // de más o de menos no deje la pantalla vacía.
+  const loose = [];
+  for (const loc of LOCATIONS){
+    const i = loc.search.indexOf(term);
+    if (i === 0) prefix.push(loc);
+    else if (i > 0) contains.push(loc);
+    else if (flat && loc.flat.includes(flat)) loose.push(loc);
+  }
+
+  const literal = prefix.concat(contains, loose);
+  const nada = !literal.length && !streets.length;
+  if (!nada || term.length < FUZZY_MIN_TERM) return { streets, exact: literal, approx: [] };
+
+  // Respaldo aproximado: también sobre las calles, no solo sobre los nombres.
+  const approxStreets = fuseStreets
+    ? fuseStreets.search(term)
+        .filter(r => r.score <= FUZZY_MAX_SCORE)
+        .map(r => r.item)
+    : [];
+
+  const approx = fuse.search(term)
+    .filter(r => r.score <= FUZZY_MAX_SCORE)
+    .slice(0, FUZZY_MAX_RESULTS)
+    .map(r => r.item);
+
+  return { streets: approxStreets, exact: [], approx };
+}
+
+const unit = n => n + (n === 1 ? ' ubicación' : ' ubicaciones');
+
+/** Icono SVG de trazo a partir de una o varias rutas. */
+function icon(cls, ...paths){
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', cls);
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  for (const d of paths){
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', d);
+    svg.append(path);
+  }
+  return svg;
+}
+
+function row(loc){
+  const li = document.createElement('li');
+  li.className = 'row';
+
+  const num = document.createElement('span');
+  num.className = 'num';
+  num.textContent = loc.display;
+
+  const nom = document.createElement('span');
+  nom.className = 'nom';
+  nom.textContent = loc.name;
+
+  const st = document.createElement('span');
+  st.className = 'st';
+  st.textContent = loc.street;
+
+  // Único elemento pulsable de la fila además del botón, y el único que no
+  // navega: copiar no lleva a nadie a ningún sitio.
+  const co = document.createElement('button');
+  co.className = 'co';
+  co.type = 'button';
+  co.textContent = loc.lat + ', ' + loc.lon;
+  co.dataset.coords = co.textContent;
+  co.setAttribute('aria-label', LABEL.copy + loc.name);
+
+  const txt = document.createElement('span');
+  txt.className = 'txt';
+  txt.append(nom, st, co);
+
+  const svg = icon('ico', PIN_BODY);
+  const dot = document.createElementNS(NS, 'circle');
+  dot.setAttribute('cx', '12');
+  dot.setAttribute('cy', '10.2');
+  dot.setAttribute('r', '2.9');
+  svg.append(dot);
+
+  const pill = document.createElement('span');
+  pill.className = 'pill';
+  pill.append(svg);
+
+  // Único elemento pulsable de la fila.
+  const a = document.createElement('a');
+  a.className = 'go';
+  a.href = mapsUrl(loc);
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.setAttribute('aria-label',
+    LABEL.open + loc.name + ', ubicación ' + loc.label + ', ' + loc.street);
+  a.append(pill);
+
+  li.append(num, txt, a);
+  return li;
+}
+
+/**
+ * Fila de calle. Va arriba, sin identificador en la columna de la izquierda
+ * —una calle no tiene número— y con el nombre en el color de acento, para que
+ * no se confunda con una ubicación sin número. El icono del botón es un
+ * recorrido y no un punto, porque lo que abre es un trazado.
+ */
+function streetRow(st){
+  const li = document.createElement('li');
+  li.className = 'row route';
+
+  const num = document.createElement('span');
+  num.className = 'num';
+
+  const nom = document.createElement('span');
+  nom.className = 'nom';
+  nom.textContent = st.name;
+
+  const sub = document.createElement('span');
+  sub.className = 'st';
+  sub.textContent = TEXT.route + ' · ' + unit(st.count);
+
+  const txt = document.createElement('span');
+  txt.className = 'txt';
+  txt.append(nom, sub);
+
+  const pill = document.createElement('span');
+  pill.className = 'pill';
+  pill.append(icon('ico', ROUTE_LINE, 'M6 16.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z',
+                    'M18 2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z'));
+
+  const a = document.createElement('a');
+  a.className = 'go';
+  a.href = streetUrl(st);
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.setAttribute('aria-label', LABEL.route + st.name);
+  a.append(pill);
+
+  li.append(num, txt, a);
+  return li;
+}
+
+function separator(){
+  const li = document.createElement('li');
+  li.className = 'sep';
+  li.setAttribute('aria-hidden', 'true');
+  li.textContent = TEXT.approx;
+  return li;
+}
+
+function render(result){
+  const frag = document.createDocumentFragment();
+  for (const st of result.streets) frag.append(streetRow(st));
+  for (const loc of result.exact) frag.append(row(loc));
+  if (result.approx.length){
+    frag.append(separator());
+    for (const loc of result.approx) frag.append(row(loc));
+  }
+  list.replaceChildren(frag);
+
+  const total = result.streets.length + result.exact.length + result.approx.length;
+  empty.hidden = total > 0;
+
+  meta.textContent = total === 0
+    ? TEXT.emptyTitle
+    : result.approx.length
+      ? unit(result.approx.length) + ' ' + TEXT.approx.toLowerCase()
+      : unit(result.exact.length + result.streets.length);
+}
+
+function update(){
+  const v = q.value;
+  body.classList.toggle('has-query', v.length > 0);
+  render(search(v));
+}
+
+/**
+ * Copia al portapapeles. El API moderno solo existe en contextos seguros
+ * (https o localhost); si la app se abre desde un archivo o por http, se
+ * recurre al método antiguo, que sigue funcionando en todos los navegadores.
+ */
+function copyText(text){
+  if (navigator.clipboard && window.isSecureContext){
+    return navigator.clipboard.writeText(text);
+  }
+  return new Promise((resolve, reject) => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:-100px;opacity:0';
+    document.body.append(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    ok ? resolve() : reject(new Error('copy'));
+  });
+}
+
+/* El texto cambia a «Copiado» un momento: sin icono que lo anuncie, la
+   confirmación es lo único que dice que ha pasado algo. */
+list.addEventListener('click', e => {
+  const btn = e.target.closest('.co');
+  if (!btn) return;
+  copyText(btn.dataset.coords).then(() => {
+    btn.textContent = TEXT.copied;
+    btn.classList.add('done');
+    meta.textContent = LABEL.copied;
+    clearTimeout(btn.timer);
+    btn.timer = setTimeout(() => {
+      btn.textContent = btn.dataset.coords;
+      btn.classList.remove('done');
+    }, COPIED_MS);
+  }).catch(() => {});
+});
+
+q.addEventListener('input', update);
+q.addEventListener('search', update);
+document.getElementById('clear').addEventListener('click', () => {
+  q.value = '';
+  update();
+  q.focus();
+});
+q.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ q.value = ''; update(); }
+});
+
+q.placeholder = TEXT.placeholder;
+
+const emptyTitle = document.createElement('b');
+emptyTitle.textContent = TEXT.emptyTitle;
+empty.append(emptyTitle, document.createTextNode(TEXT.emptyBody));
+
+update();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
