@@ -126,6 +126,24 @@ ul{list-style:none;margin:0;padding:0}
   -webkit-user-select:none;user-select:none;
   -webkit-touch-callout:none;
 }
+.row.farola{
+  position:relative;
+  box-sizing:border-box;
+}
+.row.farola::before{
+  content:"";
+  position:absolute;
+  inset-inline-start:0;top:50%;
+  width:4px;height:40px;
+  border-radius:999px;
+  background:var(--farola-color);
+  transform:translateY(-50%);
+  pointer-events:none;
+}
+.row.farola-blue{--farola-color:#3B82F6}
+.row.farola-green{--farola-color:#22C55E}
+.row.farola-red{--farola-color:#EF4444}
+.row.farola-yellow{--farola-color:#FACC15}
 
 /* Ancho fijo, para que los nombres se alineen en columna con etiquetas tan
    dispares como "3", "180–186" o "S/N". */
@@ -427,6 +445,7 @@ function icon(cls, ...paths){
 function row(loc){
   const li = document.createElement('li');
   li.className = 'row';
+  if (loc.marker) li.classList.add('farola', 'farola-' + loc.marker);
 
   const num = document.createElement('span');
   num.className = 'num';

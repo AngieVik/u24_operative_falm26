@@ -58,6 +58,7 @@ de la calle y aparece su recorrido completo.
 | RF-15 | Bajo el buscador se muestra el operativo en curso. |
 | RF-16 | **Trazado de calles:** escribir el nombre de una calle la devuelve como primera fila, y su botón abre el recorrido completo sobre el mapa. |
 | RF-17 | **La puntuación no puede dejar la pantalla vacía.** `A01` sin guion encuentra `A-01`, y `CT02` encuentra `CT-02`. |
+| RF-18 | Las farolas se nombran `Farola <código>` y muestran una barra lateral por zona: A azul, B verde, C rojo y D amarillo. El código y el nombre siguen siendo buscables. |
 
 ## Requisitos no funcionales
 

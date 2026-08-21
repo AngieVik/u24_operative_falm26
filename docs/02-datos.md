@@ -20,6 +20,7 @@ Cuatro columnas: `ubication_number`, `name`, `adress`, `coords`.
 | `id` | texto | derivado | Identificador estable, del índice de fila: `loc-000`, `loc-001`… |
 | `label` | texto | `ubication_number` | Etiqueta completa tal cual aparece: `CT-01, CT-02, CT-03, CT-04, CT-05`. |
 | `display` | texto | derivado | Etiqueta visible abreviada: una agrupación por comas muestra solo su primera parcela. |
+| `marker` | texto | derivado | Color semántico de una farola: `blue`, `green`, `red`, `yellow` o vacío para cualquier otra ubicación. |
 | `numbers` | lista de enteros | `ubication_number` | Números expandidos para la búsqueda. Vacía para etiquetas no numéricas. |
 | `name` | texto | `name` | Nombre tal cual, con tildes y mayúsculas originales. |
 | `street` | texto | `adress` | Calle, con las erratas corregidas. Puede quedar vacía mientras no exista una relación fiable. |
@@ -40,6 +41,13 @@ Cuando una ubicación ocupa varias parcelas separadas por comas, `display` conti
 la primera para evitar que el identificador desborde la columna. `label`, `search` y `flat`
 conservan la relación completa: `CT-01, CT-02, CT-03, CT-04, CT-05` se muestra como
 `CT-01`, pero una búsqueda de `CT-05` sigue encontrando esa ubicación.
+
+### Farolas
+
+Las farolas usan los códigos A1–A8, B1–B4/B6–B8, C1–C4/C6–C7 y D2–D3,
+con el nombre literal `Farola <código>`.
+El prefijo determina su barra lateral: A azul, B verde, C rojo y D amarillo.
+El marcador visual no sustituye al texto y no altera `label`, `search` ni `flat`.
 
 ### Etiquetas no numéricas
 

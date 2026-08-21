@@ -68,7 +68,15 @@ STREET_LENGTH_USUAL = (20, 5000)
 
 COORDS_RE = re.compile(r"^(-?\d+\.\d+),(-?\d+\.\d+)$")
 NUMERIC_LABEL_RE = re.compile(r"^\d+(-\d+)*$")
+FAROLA_LABEL_RE = re.compile(r"^[A-D]\d+$")
 SECTION_RE = re.compile(r"^#{1,6}\s+(.*)$")
+
+FAROLA_COLORS = {
+    "A": "blue",
+    "B": "green",
+    "C": "red",
+    "D": "yellow",
+}
 
 # Bloque de textos visibles de la plantilla y cadenas que contiene.
 UI_TEXT_RE = re.compile(r"const TEXT = \{(.*?)\n\};", re.S)
@@ -149,6 +157,13 @@ def drop_header(rows, first_column):
     return rows
 
 
+def farola_marker(label, name):
+    """Color semantico de una farola valida; vacio para cualquier otra ubicacion."""
+    if not FAROLA_LABEL_RE.fullmatch(label) or name != f"Farola {label}":
+        return ""
+    return FAROLA_COLORS[label[0]]
+
+
 def build_locations(rows):
     locations = []
     for index, (lineno, cells) in enumerate(rows):
@@ -176,6 +191,7 @@ def build_locations(rows):
                 "id": f"loc-{index:03d}",
                 "label": label,
                 "display": compact_label(label, numbers),
+                "marker": farola_marker(label, name),
                 "numbers": numbers,
                 "name": name,
                 "street": street,
