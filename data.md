@@ -97,6 +97,115 @@ Fuente de verdad de la aplicación. Cada tabla se lee por su título de sección
 | VN-02                             | Mi Niña Rocio                         |        | 36.836583,-2.4310814 |
 | VN-04                             | Vinos Andalucía                       |        | 36.837983,-2.4316564 |
 | VN-01                             | Los dos Maños                         |        | 36.836156,-2.4305177 |
+| A-18                              | Pista de choque                                              |        | 36.834849,-2.430043  |
+| A-21                              | Jumper                                                       |        | 36.835277,-2.430349  |
+| A-22                              | Súper Olla XXL                                               |        | 36.835283,-2.430201  |
+| E-02                              | Circuito de Motos                                            |        | 36.837539,-2.430917  |
+| I-13                              | Mega Ollita infantil                                         |        | 36.834634,-2.431650  |
+| P-06                              | Moral Ortega, Antonio - Patatas asadas                       |        | 36.836874,-2.431052  |
+| RT-01                             | Santiago Heredia, Manuel - Comida rápida                     |        | 36.836194,-2.430810  |
+| RT-02                             | Tudela González, Cristina - Mojitos                          |        | 36.836198,-2.430733  |
+| RT-03                             | Donaelia, S.L. - Mesón                                       |        | 36.836216,-2.430316  |
+| RT-04                             | Santiago Santiago, José María - General                      |        | 36.836220,-2.430193  |
+| RT-05                             | Hurtado Roncero, Juan Luis - Hamburguesería                  |        | 36.836230,-2.430069  |
+| RT-06                             | El Kentafi Azirar, Mimoun - Pinchos morunos                  |        | 36.836407,-2.431034  |
+| RT-07                             | Amador Gómez, Juan José - Hamburguesería                     |        | 36.836413,-2.430911  |
+| RT-08                             | Albalá Jiménez, Manuel - Pinchos morunos                     |        | 36.836413,-2.430786  |
+| RT-09                             | Amador Gómez, Santiago - Comida rápida                       |        | 36.836418,-2.430664  |
+| RT-11                             | Cortés Garcés, Manuel - Comida rápida                        |        | 36.836445,-2.430198  |
+| RT-12                             | Tamara Garcés Amador - Comida rápida                         |        | 36.836450,-2.430075  |
+| RT-13                             | Amador Fernández, Elvira - Comida rápida                     |        | 36.836631,-2.430965  |
+| RT-14                             | Amador Gómez, Matilde - Comida rápida                        |        | 36.836636,-2.430842  |
+| RT-16                             | Cortés Ruiz, Carmen - Comida rápida                          |        | 36.836657,-2.430347  |
+| RT-19                             | Prieto Cortés, Andrea - Comida rápida                        |        | 36.833802,-2.431260  |
+| RT-21                             | Moreno Cortés, Nerea - Patatas asadas                        |        | 36.833943,-2.431265  |
+| RT-22                             | Milán Blanco, José Ramón - Patatas asadas                    |        | 36.836193,-2.429904  |
+| RT-23                             | Cortés Ruiz, Carmen - Patatas asadas                         |        | 36.834970,-2.429770  |
+| RT-24                             | Amador Amador, Santiago - Patatas asadas                     |        | 36.835020,-2.429770  |
+| RT-25                             | Gómez Santiago, Isabel - Comida rápida                       |        | 36.834562,-2.431225  |
+| RT-32                             | Santiago Santiago, Justo - Comida rápida                     |        | 36.836641,-2.430719  |
+| MJ-01                             | Nabil Abdeselam Mohamed - Mojitos y bebidas tropicales       |        | 36.836015,-2.430061  |
+| H-01                              | Carbajo Gordillo, Vicente Manuel - Caseta de Tiro            |        | 36.834861,-2.431210  |
+| H-02                              | Carbajo Gordillo, Zaira - Pesca de patos                     |        | 36.834753,-2.431206  |
+| H-03                              | Carbajo Rodríguez, Teresa - Caseta de Tiro – Pesca de Patos  |        | 36.835265,-2.431223  |
+| H-04                              | Pérez Álvarez, Bárbara - Caseta de tiro Multijuegos          |        | 36.835393,-2.431226  |
+| H-06                              | Dragota, Doruta Nastasia - Caseta de Tiro                    |        | 36.836989,-2.431716  |
+| H-07                              | Carbajo Gordillo, Vicente Manuel - Dardos                    |        | 36.835387,-2.430832  |
+| H-08                              | Carbajo Gordillo, David - Tiro                               |        | 36.835392,-2.430707  |
+| H-10                              | Berbis Lozano, María Carmen - Pesca de patos                 |        | 36.835547,-2.431062  |
+| H-11                              | Moreno Cortés, Nerea - Caseta de Tiro                        |        | 36.835552,-2.430946  |
+| H-12                              | Simarro Cano, Santiago - Caseta de Tiro                      |        | 36.835560,-2.430795  |
+| H-13                              | Berbis Lozano, María Carmen - Caseta de Tiro                 |        | 36.835565,-2.430668  |
+| H-14                              | Rodríguez Dalot, Teresa - Pesca de patos                     |        | 36.835409,-2.430450  |
+| H-15                              | Espinosa Aramendi, Santos - Tómbola Multijuegos              |        | 36.835415,-2.430310  |
+| H-16                              | Gómez Heredia, Marina - Multijuegos                          |        | 36.835424,-2.430111  |
+| H-17                              | Santiago Cortés, Eva - Caseta de tiro                        |        | 36.835582,-2.430277  |
+| H-19                              | Rodríguez Mendoza, Danna M. - Tiro                           |        | 36.835588,-2.430164  |
+| H-20                              | Rodríguez Mendoza, Danna M. - Tiro                           |        | 36.835592,-2.430075  |
+| H-21                              | Carbajo Rodríguez, Teresa - Caseta Multijuegos               |        | 36.835940,-2.431077  |
+| H-22                              | Carbajo Rodríguez, Teresa - Tiro                             |        | 36.835943,-2.430999  |
+| H-23                              | Carbajo Gordillo, José Aurelio - Multijuegos                 |        | 36.835947,-2.430924  |
+| H-25                              | Ros Montoya, María Teresa - Bingo                            |        | 36.835951,-2.430824  |
+| H-26                              | Ros García, Manuel - Tiro                                    |        | 36.835957,-2.430701  |
+| H-27                              | Rodríguez Dalot, Teresa - Caseta Multijuegos                 |        | 36.836001,-2.431079  |
+| H-28                              | Carbajo Gordillo, Zaira - Caseta Multijuegos                 |        | 36.836005,-2.431002  |
+| H-29                              | Amador Santiago, María José - Caseta de Tiro                 |        | 36.836009,-2.430927  |
+| H-30                              | Carbajo Gordillo, José Aurelio - Caseta de Tiro- Multijuegos |        | 36.836014,-2.430828  |
+| H-32                              | Ros García, Manuel - Carreras de camellos                    |        | 36.836019,-2.430706  |
+| H-33                              | Parque de Ocio Inf. Little Park, S.L. - Pesca de patos       |        | 36.835970,-2.430433  |
+| H-34                              | Espinosa Aramendi, Santos - Tómbola                          |        | 36.835975,-2.430285  |
+| H-35                              | Dragota, Doruta Nastasia - Habilidad                         |        | 36.835983,-2.430146  |
+| H-37                              | Carbajo Gordillo, José Aurelio - Tiro                        |        | 36.836030,-2.430457  |
+| H-38                              | Martínez Cruz, José Carlos - Tiro                            |        | 36.836033,-2.430382  |
+| H-39                              | Ros Montoya, María Teresa - Caseta de Tiro                   |        | 36.836038,-2.430282  |
+| H-41                              | Martínez Cruz, José Carlos - Tiro                            |        | 36.836044,-2.430160  |
+| H-42                              | Milán Blanco, José Ramón - Caseta de Tiro                    |        | 36.836009,-2.429909  |
+| H-43                              | Rodríguez Dalot, Teresa - Caseta de Tiro                     |        | 36.834670,-2.431203  |
+| H-44                              | Milán Blanco, José Ramón - Caseta de Tiro                    |        | 36.836088,-2.429914  |
+| H-45                              | Carbajo Rodríguez, Jorge - Caseta de Tiro                    |        | 36.834407,-2.431195  |
+| H-46                              | Rodríguez Parreira, Luisa Violeta - Pesca de Patos           |        | 36.834456,-2.431197  |
+| H-47                              | Rodríguez Mendoza, Danna M. - Pesca de Patos                 |        | 36.837107,-2.431719  |
+| R-01                              | Sánchez Baptista, Lidia - Algodón                            |        | 36.835608,-2.431235  |
+| R-02                              | Alcalá Rodríguez, María Sofía - Algodón                      |        | 36.835636,-2.431236  |
+| R-03                              | Jerez Baptista, Andrea - Algodón                             |        | 36.835665,-2.431237  |
+| R-04                              | Fernández Trejovich, Fernando - Algodón                      |        | 36.835805,-2.431242  |
+| R-05                              | Sánchez Bautista, Melodía - Algodón                          |        | 36.835735,-2.431238  |
+| R-06                              | Parejo Sánchez, Alfonsa Belén - Turrones                     |        | 36.834992,-2.431214  |
+| R-07                              | José Francisco García Albarracín - Helados                   |        | 36.835106,-2.431218  |
+| R-08                              | María Sandra Crespillo Durán - Helados                       |        | 36.835519,-2.431232  |
+| R-09                              | Aguilera Torres, José Manuel - Helados, gofres, etc.         |        | 36.837119,-2.431286  |
+| R-10                              | Batista Delgado, Víctor - Algodón                            |        | 36.837200,-2.431288  |
+| R-11                              | Fenoy Cruz, María - Algodón                                  |        | 36.837246,-2.431291  |
+| R-12                              | Fenoy Cruz, María - Gofres                                   |        | 36.837294,-2.431292  |
+| R-13                              | Parra Gómez, Raquel Felipa - Algodón                         |        | 36.837341,-2.431294  |
+| R-14                              | Rodríguez Murria, Jorge José - Helados                       |        | 36.835402,-2.431037  |
+| R-15                              | Alcaraz Rodríguez, Pedro - Algodón y palomitas               |        | 36.835408,-2.430941  |
+| R-17                              | Espinosa Fenoy, María del Mar - Gofres                       |        | 36.836637,-2.431683  |
+| R-18                              | Aguilera Torres, José Manuel - Helados, gofres, etc.         |        | 36.836802,-2.431711  |
+| R-19                              | Parra Gómez, Raquel Felipa - Algodón                         |        | 36.836905,-2.431719  |
+| R-20                              | Fenoy Cruz, María - Algodón y palomitas                      |        | 36.836892,-2.431279  |
+| R-21                              | Parra Gómez, Raquel Felipa - Algodón                         |        | 36.835425,-2.430623  |
+| R-22                              | Sánchez Bautista, Melodía - Algodón                          |        | 36.835544,-2.430465  |
+| R-23                              | Jerez Morales, Andrés - Gofres, helados, etc.                |        | 36.835547,-2.430392  |
+| R-24                              | Aguilera Torres, José Manuel - Gofres, helados, etc.         |        | 36.836047,-2.431248  |
+| R-25                              | Espinosa Fenoy, María del Mar - Gofres                       |        | 36.836543,-2.431679  |
+| R-26                              | Espinosa Fenoy, María del Mar - Gofres, helados, etc.        |        | 36.835906,-2.431242  |
+| R-27                              | Fenoy Cruz, Pedro - Gofres, helados, etc.                    |        | 36.836798,-2.431272  |
+| R-28                              | Sanz Vallejo, María del Mar - Gofres, helados, etc.          |        | 36.836567,-2.431262  |
+| R-34                              | Barja Santiago, Alejandro - Gofres                           |        | 36.836157,-2.431252  |
+| R-35                              | Sánchez Baptista, Lidia - Algodón                            |        | 36.835176,-2.431220  |
+| R-36                              | Linares Chacón, Alejandro - Turrones                         |        | 36.836682,-2.431268  |
+| R-37                              | Fenoy Cruz, Pedro - Buñuelos                                 |        | 36.834340,-2.431192  |
+| R-38, R-39, R-40                 | Linares Cantero, Alejandro - Turrones                        |        | 36.836989,-2.431282  |
+| R-41                              | Ramírez Jiménez, Francisco M. - Turrones                     |        | 36.837459,-2.431297  |
+| R-43                              | Fernández Martínez, Amanda - Algodón                         |        | 36.836732,-2.431634  |
+| R-45                              | Amador Avilés, Nayara - Buñuelos                             |        | 36.837388,-2.431295  |
+| R-49, R-50, R-51                 | Ramirez Cabrera, Juan - Turrones                             |        | 36.837700,-2.431296  |
+| R-53                              | Ramírez Jiménez, Francisco M. - Turrones                     |        | 36.837574,-2.431296  |
+| PT-01                             | Jerez Morales, Andrés - Fotopin                              |        | 36.835995,-2.431581  |
+| CT-15, CT-16                     | Grupo Yes ASG Org. Eventos, S.L. - Caseta tradicional        |        | 36.837973,-2.431150  |
+| CT-20, CT-21                     | Partido Popular - Caseta tradicional                         |        | 36.838443,-2.431165  |
+| CT-25, CT-26, CT-27, CT-28       | Tinglao Almería, S.L. - Caseta tradicional                   |        | 36.837475,-2.431132  |
 | Ayun                              | Dependencias Municipales              |        | 36.833743,-2.431943  |
 | C                                 | Circo                                 |        | 36.833157,-2.4318659 |
 | PV                                | Punto violeta                         |        | 36.834327,-2.4299033 |

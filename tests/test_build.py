@@ -1,9 +1,63 @@
+import re
 import unittest
 
 from scripts import build
 
 
 class LocationDisplayTests(unittest.TestCase):
+    def test_location_dataset_uses_supported_charset(self):
+        sections = build.read_sections()
+        rows = build.drop_header(sections["ubicaciones"], "ubication_number")
+        locations = build.build_locations(rows)
+        center, _, _ = build.check_coherence(locations)
+        street_rows = build.drop_header(sections["calles"], "street")
+        streets, _, _ = build.build_streets(street_rows, locations, center)
+
+        try:
+            covered = build.check_charset(
+                locations, streets, build.TEMPLATE.read_text(encoding="utf-8")
+            )
+        except SystemExit as error:
+            self.fail(str(error))
+
+        self.assertGreater(covered, 0)
+
+    def test_occupied_2026_parcels_are_searchable(self):
+        official_numbers = {
+            "A": (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24),
+            "CH": (1, 2, 3, 4),
+            "CJ": tuple(range(1, 29)),
+            "CT": (1, 2, 3, 4, 5, 8, 9, 15, 16, 17, 18, 19, 20, 21, 25, 26, 27, 28),
+            "E": (1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12),
+            "H": (1, 2, 3, 4, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 37, 38, 39, 41, 42, 43, 44, 45, 46, 47),
+            "I": (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32),
+            "MJ": (1,),
+            "P": (6,),
+            "PT": (1,),
+            "R": (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 34, 35, 36, 37, 38, 39, 40, 41, 43, 45, 49, 50, 51, 53),
+            "RT": (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 30, 32),
+            "VN": (1, 2, 3, 4),
+        }
+        expected = {
+            f"{prefix}-{number:02d}"
+            for prefix, numbers in official_numbers.items()
+            for number in numbers
+        }
+        sections = build.read_sections()
+        rows = build.drop_header(sections["ubicaciones"], "ubication_number")
+        locations = build.build_locations(rows)
+        present = {
+            f"{prefix.upper()}-{int(number):02d}"
+            for location in locations
+            for prefix, number in re.findall(
+                r"\b(A|E|I|H|R|RT|CH|VN|MJ|P|PT|CJ|CT)-(\d+)\b",
+                location["label"],
+                re.IGNORECASE,
+            )
+        }
+
+        self.assertEqual(expected - present, set())
+
     def test_grouped_parcels_show_first_but_keep_all_searchable(self):
         full_label = "CT-01, CT-02, CT-03, CT-04, CT-05"
         locations = build.build_locations(
