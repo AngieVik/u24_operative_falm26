@@ -162,6 +162,20 @@ class LocationDisplayTests(unittest.TestCase):
             "border-inline-start:4px solid var(--farola-color)", template
         )
 
+    def test_service_worker_cache_version_changes_with_compiled_app(self):
+        old_worker = build.render_service_worker("<html>datos antiguos</html>")
+        new_worker = build.render_service_worker("<html>datos nuevos</html>")
+        cache_pattern = re.compile(r"const CACHE = 'u24-([0-9a-f]{12})';")
+
+        old_match = cache_pattern.search(old_worker)
+        new_match = cache_pattern.search(new_worker)
+
+        self.assertIsNotNone(old_match)
+        self.assertIsNotNone(new_match)
+        self.assertNotEqual(old_match.group(1), new_match.group(1))
+        self.assertNotIn("__APP_VERSION__", old_worker)
+        self.assertNotIn("__APP_VERSION__", new_worker)
+
 
 if __name__ == "__main__":
     unittest.main()

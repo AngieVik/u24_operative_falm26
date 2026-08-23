@@ -79,7 +79,7 @@ compilación: se publicaría con la marca antigua sin aviso.
 | `src/template.html` | `<title>`, `meta description`, `apple-mobile-web-app-title` |
 | `src/manifest.webmanifest` | `name`, `short_name`, `description` |
 | `scripts/build.py` | el `aria-label` del emblema, en `read_logo()` |
-| `src/sw.js` | el nombre de la caché, `CACHE` |
+| `src/sw.js` | plantilla del service worker; la versión de `CACHE` se genera automáticamente |
 | `src/logo.svg` | el emblema que se empotra |
 | `icons/` | los siete iconos que se publican, y `logo/` como original |
 

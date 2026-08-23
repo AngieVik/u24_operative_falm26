@@ -2,7 +2,7 @@
    Cachea la app completa en la instalación para que buscar funcione sin cobertura.
    Estrategia: cache-first para lo propio; la red solo se usa para actualizar. */
 
-const CACHE = 'u24-v6';
+const CACHE = 'u24-4770b8980268';
 const DOC = './index.html';
 
 /* Cuánto se espera a la red antes de servir la copia guardada.

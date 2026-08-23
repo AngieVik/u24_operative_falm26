@@ -76,7 +76,7 @@ Fuente de verdad de la aplicación. Cada tabla se lee por su título de sección
 | CJ-09, CJ-10 bis                  | Salero Latino                                                |        | 36.834907,-2.429641  |
 | CJ-10                             | Guarapo                                                      |        | 36.834655,-2.429646  |
 | CJ-11, CJ-12, CJ-13 y CJ-18       | La Maldita                                                   |        | 36.834410,-2.429641  |
-| CJ-14, CJ-15                      | LIQ                                                          |        | 36.836939,-2.430093  |
+| CJ-14, CJ-15                      | Taray Aguadulce, S.L.                                        |        | 36.836939,-2.430093  |
 | CJ-16, CJ-17                      | Caramelo                                                     |        | 36.837113,-2.430198  |
 | CJ-19                             | Grupo Renta Todo Carpas CJ-19                                |        | 36.834390,-2.429340  |
 | CJ-20                             | Sixti 1982 CJ-20                                             |        | 36.834390,-2.429210  |
@@ -205,7 +205,7 @@ Fuente de verdad de la aplicación. Cada tabla se lee por su título de sección
 | PT-01                             | Jerez Morales, Andrés - Fotopin                              |        | 36.835995,-2.431581  |
 | CT-15, CT-16                      | Grupo Yes ASG Org. Eventos, S.L. - Caseta tradicional        |        | 36.837973,-2.431150  |
 | CT-20, CT-21                      | Partido Popular - Caseta tradicional                         |        | 36.838443,-2.431165  |
-| CT-25, CT-26, CT-27, CT-28        | Tinglao Almería, S.L. - Caseta tradicional                   |        | 36.837475,-2.431132  |
+| CT-25, CT-26, CT-27, CT-28        | Paripé                                                       |        | 36.837475,-2.431132  |
 | Ayun                              | Dependencias Municipales                                     |        | 36.833743,-2.431943  |
 | C                                 | Circo                                                        |        | 36.833157,-2.4318659 |
 | PV                                | Punto violeta                                                |        | 36.834327,-2.4299033 |

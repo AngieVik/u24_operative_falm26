@@ -33,6 +33,8 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data.md"
 SRC = ROOT / "src"
 TEMPLATE = SRC / "template.html"
+MANIFEST = SRC / "manifest.webmanifest"
+SERVICE_WORKER = SRC / "sw.js"
 FONTS = SRC / "fonts"
 LOGO = SRC / "logo.svg"
 CHARSET = FONTS / "charset.txt"
@@ -44,8 +46,8 @@ OUTPUT = DIST / "index.html"
 
 FONT_WEIGHTS = (400, 500, 700)
 
-# Se copian tal cual a dist/. Lo que no este aqui no se publica.
-COPY_ROOT = ("manifest.webmanifest", "sw.js")
+# Se copian tal cual a dist/. El service worker se versiona al ensamblarlo.
+COPY_ROOT = ("manifest.webmanifest",)
 COPY_ICONS = (
     "icon-192.png",
     "icon-512.png",
@@ -432,6 +434,19 @@ def read_fonts():
     return fonts
 
 
+def render_service_worker(html):
+    """Incrusta una version determinista que cambia con cada app distinta."""
+    marker = "__APP_VERSION__"
+    source = SERVICE_WORKER.read_text(encoding="utf-8")
+    manifest = MANIFEST.read_text(encoding="utf-8")
+    if marker not in source:
+        fail(f"{SERVICE_WORKER.relative_to(ROOT)} no contiene el marcador {marker}")
+
+    payload = "\0".join((html, manifest, source)).encode("utf-8")
+    version = hashlib.sha256(payload).hexdigest()[:12]
+    return source.replace(marker, version)
+
+
 def assemble_dist(html):
     """Reconstruye dist/ desde cero, para que un archivo retirado del proyecto
     no siga publicandose por inercia."""
@@ -440,6 +455,9 @@ def assemble_dist(html):
     (DIST / "icons").mkdir(parents=True)
 
     OUTPUT.write_text(html, encoding="utf-8", newline="\n")
+    (DIST / "sw.js").write_text(
+        render_service_worker(html), encoding="utf-8", newline="\n"
+    )
 
     for name in COPY_ROOT:
         origen = SRC / name
