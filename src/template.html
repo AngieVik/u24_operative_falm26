@@ -60,43 +60,45 @@ body{
   padding-top:env(safe-area-inset-top);
   border-bottom:1px solid var(--border);
 }
-.bar{display:flex;align-items:center;gap:13px;padding:10px var(--pad) 12px}
-.bar .mark{flex:none;width:66px;height:66px;display:block}
+.bar{
+  display:grid;grid-template-columns:36px minmax(0,1fr);
+  align-items:center;gap:8px;padding:5px 10px 4px;
+}
+.bar .mark{flex:none;width:34px;height:34px;display:block}
 .stack{flex:1;min-width:0}
 /* Rótulo del operativo en curso. */
 .sub{
-  margin:6px 0 0;padding:0 3px;
-  font-size:12px;font-weight:500;letter-spacing:.04em;
-  color:var(--faint);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin:2px 1px 0;padding:0;
+  font-size:8px;font-weight:500;letter-spacing:.075em;
+  color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
 /* ── Buscador ─────────────────────────────────────── */
 .field{
   position:relative;display:flex;align-items:center;
   background:var(--field);
-  border:1px solid var(--border);border-radius:12px;
+  border:1px solid var(--border);border-radius:8px;
 }
-.field:focus-within{border-color:var(--accent);background:var(--surface)}
+.field:focus-within{border-color:#565B61;background:var(--surface)}
 .field .lead{
-  position:absolute;left:14px;width:20px;height:20px;
+  position:absolute;left:9px;width:15px;height:15px;
   color:var(--faint);pointer-events:none;
 }
-.field:focus-within .lead{color:var(--accent)}
+.field:focus-within .lead{color:var(--faint)}
 #q{
-  display:block;width:100%;height:54px;
-  padding:0 54px 0 44px;
-  background:none;border:0;outline:none;border-radius:12px;
-  font-family:inherit;font-size:19px;font-weight:500;color:var(--text);
+  display:block;width:100%;height:34px;
+  padding:0 31px 0 32px;
+  background:none;border:0;outline:none;border-radius:8px;
+  font-family:inherit;font-size:14px;font-weight:500;color:var(--text);
   letter-spacing:.01em;
 }
 #q::placeholder{color:var(--faint);font-weight:400}
 #clear{
-  position:absolute;right:3px;
-  width:48px;height:48px;display:none;place-items:center;
+  position:absolute;right:2px;
+  width:28px;height:28px;display:none;place-items:center;
   background:none;border:0;padding:0;color:var(--muted);cursor:pointer;
 }
-#clear .ico{width:19px;height:19px}
+#clear .ico{width:15px;height:15px}
 #clear:active{color:var(--text)}
 body.has-query #clear{display:grid}
 
@@ -110,19 +112,13 @@ body.has-query #clear{display:grid}
 /* ── Lista ────────────────────────────────────────── */
 ul{list-style:none;margin:0;padding:0}
 
-/* La fila no es pulsable: solo lo es el botón de la derecha. Una fila-enlace
-   se activa sola al desplazar la lista con el dedo.
-
-   Sin líneas de separación: lo que agrupa las tres líneas de una ubicación es
-   la proximidad, 6,5 px de hueco óptico dentro del bloque contra 13,75 px
-   entre bloques. Cambiar una distancia obliga a recalcular la otra.
-
-   Sin relleno vertical, para que el botón ocupe la altura completa de la fila.
-   Sin selección de texto, porque al desplazar con el dedo el arrastre la
-   inicia y llena la pantalla de resaltes. */
+/* Una sola línea cerrada: parcela, nombre y acceso al mapa. El separador fino
+   conserva el ritmo sin convertir cada resultado en una tarjeta. */
 .row{
-  display:flex;align-items:center;gap:12px;
-  min-height:72px;padding:0 0 0 var(--pad);
+  display:grid;grid-template-columns:56px minmax(0,1fr) 38px;
+  align-items:center;column-gap:0;
+  min-height:38px;padding:0 7px 0 12px;
+  border-bottom:1px solid var(--rule);
   -webkit-user-select:none;user-select:none;
   -webkit-touch-callout:none;
 }
@@ -134,7 +130,7 @@ ul{list-style:none;margin:0;padding:0}
   content:"";
   position:absolute;
   inset-inline-start:0;top:50%;
-  width:4px;height:40px;
+  width:4px;height:22px;
   border-radius:999px;
   background:var(--farola-color);
   transform:translateY(-50%);
@@ -144,25 +140,31 @@ ul{list-style:none;margin:0;padding:0}
 .row.farola-green{--farola-color:#22C55E}
 .row.farola-red{--farola-color:#EF4444}
 .row.farola-yellow{--farola-color:#FACC15}
+.row.expanded{background:rgba(255,255,255,.018)}
+.row.expanded.farola::before{top:19px}
 
 /* Ancho fijo, para que los nombres se alineen en columna con etiquetas tan
    dispares como "3", "180–186" o "S/N". */
 .num{
-  flex:none;width:66px;
-  font-size:15px;font-weight:700;
+  flex:none;width:auto;
+  font-size:12px;font-weight:700;
   font-variant-numeric:tabular-nums;letter-spacing:.02em;
   color:var(--accent);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-/* Altura de línea fija en píxeles, no proporcional: el hueco que se ve es el
-   margen más el aire interno de cada caja, (altura de línea − tamaño) / 2, y
-   con valores proporcionales ese aire varía con cada tamaño de letra. Con
-   estos, los dos huecos miden 6,5 px exactos. */
 .txt{flex:1;min-width:0;display:block}
 .nom{
   display:block;
-  font-size:16.5px;line-height:21px;font-weight:500;letter-spacing:.005em;
+  font-size:13.5px;line-height:18px;font-weight:500;letter-spacing:.005em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.detail-toggle{
+  width:100%;padding:9px 0;margin:-9px 0;
+  border:0;background:none;color:inherit;
+  font-family:inherit;text-align:left;cursor:pointer;
+}
+.detail-toggle:focus-visible{
+  outline:1px solid #565B61;outline-offset:-1px;border-radius:4px;
 }
 .st{
   display:block;margin-top:2.5px;
@@ -187,20 +189,44 @@ ul{list-style:none;margin:0;padding:0}
 }
 .co:active{color:var(--text)}
 .co:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.co.done{color:var(--accent)}
-/* Botón de ubicación. Ocupa toda la altura de la fila y 64 px de ancho:
-   el objetivo real es mayor que la pastilla que se ve. */
+.detail{
+  grid-column:1 / -1;
+  width:auto;margin:0 8px 6px 68px;padding:0 8px 8px;
+  background:rgba(255,255,255,.018);
+  border-top:1px solid var(--border);border-radius:0;
+  animation:detail-in 160ms ease-out both;
+}
+.detail-fields{display:grid;gap:4px;margin:0;padding-top:7px}
+.detail-item{display:grid;grid-template-columns:88px minmax(0,1fr);gap:8px}
+.detail-item dt{
+  margin:0;color:var(--faint);font-size:9px;line-height:14px;
+  font-weight:700;letter-spacing:.055em;text-transform:uppercase;
+}
+.detail-item dd{
+  min-width:0;margin:0;color:var(--text);font-size:11px;line-height:14px;
+  overflow-wrap:anywhere;
+}
+.detail .co{
+  width:100%;margin:7px 0 -5px -8px;padding:8px;
+  color:var(--accent);font-size:12.5px;
+}
+@keyframes detail-in{
+  from{opacity:0;transform:translateY(-4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+/* El enlace ocupa la columna completa; la pastilla visible se mantiene
+   discreta para no aumentar la altura de la fila. */
 .go{
-  flex:none;width:64px;align-self:stretch;
+  flex:none;width:38px;align-self:stretch;
   display:grid;place-items:center;
   color:var(--accent);text-decoration:none;
 }
 .pill{
   display:grid;place-items:center;
-  width:40px;height:40px;border-radius:11px;
+  width:28px;height:28px;border-radius:7px;
   background:var(--accent-soft);border:1px solid var(--accent-line);
 }
-.pill .ico{width:19px;height:19px}
+.pill .ico{width:14px;height:14px}
 
 /* La fila de calle se ve igual que las demás: lo que la distingue es su
    segunda línea y el icono de recorrido del botón. */
@@ -221,7 +247,10 @@ ul{list-style:none;margin:0;padding:0}
 .empty b{display:block;color:var(--text);font-size:16.5px;font-weight:500;margin-bottom:6px}
 .empty[hidden]{display:none}
 
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important}
+  .detail{animation:none!important}
+}
 @media (min-width:600px){
   .bar,ul,.empty{max-width:600px;margin-inline:auto}
 }
@@ -279,7 +308,12 @@ const TEXT = {
   emptyBody: 'Comprueba el número o escribe menos letras del nombre.',
   placeholder: 'Nombre o número',
   route: 'Recorrido de la calle',
-  copied: 'Copiado'
+  parcel: 'Parcela',
+  tradeName: 'Nombre comercial',
+  legalName: 'Titular / razón social',
+  activity: 'Actividad',
+  group: 'Grupo',
+  indication: 'Indicación'
 };
 
 /* Etiquetas para lectores de pantalla. No las dibuja la tipografía, así que
@@ -290,9 +324,6 @@ const LABEL = {
   copy: 'Copiar coordenadas de ',
   copied: 'Coordenadas copiadas'
 };
-
-/* Cuánto se queda en pantalla la confirmación de copiado. */
-const COPIED_MS = 1400;
 
 /* Ficha de lugar de Google Maps: mapa, punto exacto y accesos a «Cómo llegar»
    e «Iniciar» dentro de la propia app. Ver docs/03-navegacion-maps.md. */
@@ -338,6 +369,7 @@ const list = document.getElementById('list');
 const empty = document.getElementById('empty');
 const meta = document.getElementById('meta');
 const body = document.body;
+let expanded = null;
 
 /** Minúsculas, sin tildes, comillas normalizadas, espacios colapsados. */
 function normalize(s){
@@ -442,6 +474,66 @@ function icon(cls, ...paths){
   return svg;
 }
 
+function detail(loc){
+  const panel = document.createElement('div');
+  panel.className = 'detail';
+  panel.id = 'detail-' + loc.id;
+
+  const fields = document.createElement('dl');
+  fields.className = 'detail-fields';
+  const values = [
+    [TEXT.parcel, loc.label],
+    [TEXT.tradeName, loc.tradeName],
+    [TEXT.legalName, loc.legalName],
+    [TEXT.activity, loc.activityType],
+    [TEXT.group, loc.group],
+    [TEXT.indication, loc.street]
+  ];
+  for (const [label, value] of values){
+    if (!value) continue;
+    const item = document.createElement('div');
+    item.className = 'detail-item';
+    const term = document.createElement('dt');
+    term.textContent = label;
+    const description = document.createElement('dd');
+    description.textContent = value;
+    item.append(term, description);
+    fields.append(item);
+  }
+
+  const coordinates = document.createElement('button');
+  coordinates.className = 'co';
+  coordinates.type = 'button';
+  coordinates.dataset.coords = loc.lat + ',' + loc.lon;
+  coordinates.textContent = loc.lat + ', ' + loc.lon;
+  coordinates.setAttribute('aria-label', LABEL.copy + loc.name);
+  panel.append(fields, coordinates);
+  return panel;
+}
+
+function closeDetail(options = {}){
+  if (!expanded) return;
+  const current = expanded;
+  expanded = null;
+  current.button.setAttribute('aria-expanded', 'false');
+  current.li.classList.remove('expanded');
+  current.panel.remove();
+  if (options.restoreFocus) current.button.focus();
+}
+
+function openDetail(li, button, loc){
+  if (expanded && expanded.button === button){
+    closeDetail({restoreFocus:false});
+    return;
+  }
+  closeDetail({restoreFocus:false});
+  const panel = detail(loc);
+  li.append(panel);
+  li.classList.add('expanded');
+  button.setAttribute('aria-expanded', 'true');
+  expanded = {li, button, panel};
+}
+
 function row(loc){
   const li = document.createElement('li');
   li.className = 'row';
@@ -451,26 +543,17 @@ function row(loc){
   num.className = 'num';
   num.textContent = loc.display;
 
-  const nom = document.createElement('span');
-  nom.className = 'nom';
+  const nom = document.createElement('button');
+  nom.className = 'nom detail-toggle';
+  nom.type = 'button';
   nom.textContent = loc.name;
-
-  const st = document.createElement('span');
-  st.className = 'st';
-  st.textContent = loc.street;
-
-  // Único elemento pulsable de la fila además del botón, y el único que no
-  // navega: copiar no lleva a nadie a ningún sitio.
-  const co = document.createElement('button');
-  co.className = 'co';
-  co.type = 'button';
-  co.textContent = loc.lat + ', ' + loc.lon;
-  co.dataset.coords = co.textContent;
-  co.setAttribute('aria-label', LABEL.copy + loc.name);
+  nom.dataset.locationId = loc.id;
+  nom.setAttribute('aria-expanded', 'false');
+  nom.setAttribute('aria-controls', 'detail-' + loc.id);
 
   const txt = document.createElement('span');
   txt.className = 'txt';
-  txt.append(nom, st, co);
+  txt.append(nom);
 
   const svg = icon('ico', PIN_BODY);
   const dot = document.createElementNS(NS, 'circle');
@@ -489,8 +572,8 @@ function row(loc){
   a.href = mapsUrl(loc);
   a.target = '_blank';
   a.rel = 'noopener noreferrer';
-  a.setAttribute('aria-label',
-    LABEL.open + loc.name + ', ubicación ' + loc.label + ', ' + loc.street);
+  const mapLabel = LABEL.open + loc.name + ', ubicación ' + loc.label;
+  a.setAttribute('aria-label', loc.street ? mapLabel + ', ' + loc.street : mapLabel);
   a.append(pill);
 
   li.append(num, txt, a);
@@ -568,6 +651,7 @@ function render(result){
 }
 
 function update(){
+  closeDetail({restoreFocus:false});
   const v = q.value;
   body.classList.toggle('has-query', v.length > 0);
   render(search(v));
@@ -595,21 +679,34 @@ function copyText(text){
   });
 }
 
-/* El texto cambia a «Copiado» un momento: sin icono que lo anuncie, la
-   confirmación es lo único que dice que ha pasado algo. */
+/* La confirmación se anuncia por la región de estado, sin cambiar el texto
+   visible de las coordenadas. */
 list.addEventListener('click', e => {
+  const toggle = e.target.closest('.detail-toggle');
+  if (toggle){
+    const li = toggle.closest('.row');
+    const loc = LOCATIONS.find(item => item.id === toggle.dataset.locationId);
+    if (li && loc) openDetail(li, toggle, loc);
+    return;
+  }
   const btn = e.target.closest('.co');
   if (!btn) return;
   copyText(btn.dataset.coords).then(() => {
-    btn.textContent = TEXT.copied;
-    btn.classList.add('done');
     meta.textContent = LABEL.copied;
-    clearTimeout(btn.timer);
-    btn.timer = setTimeout(() => {
-      btn.textContent = btn.dataset.coords;
-      btn.classList.remove('done');
-    }, COPIED_MS);
   }).catch(() => {});
+});
+
+document.addEventListener('click', e => {
+  if (expanded && !expanded.li.contains(e.target)){
+    closeDetail({restoreFocus:false});
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && expanded){
+    e.preventDefault();
+    closeDetail({restoreFocus:true});
+  }
 });
 
 q.addEventListener('input', update);
@@ -620,7 +717,14 @@ document.getElementById('clear').addEventListener('click', () => {
   q.focus();
 });
 q.addEventListener('keydown', e => {
-  if (e.key === 'Escape'){ q.value = ''; update(); }
+  if (e.key !== 'Escape') return;
+  if (expanded){
+    e.preventDefault();
+    closeDetail({restoreFocus:true});
+    return;
+  }
+  q.value = '';
+  update();
 });
 
 q.placeholder = TEXT.placeholder;

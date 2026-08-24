@@ -1,90 +1,114 @@
 # 05 — Mantenimiento
 
-Procedimiento para actualizar los datos y publicar. Escrito para hacerlo del tirón, sin
-tener que leer el resto de la documentación.
+## Actualizar ubicaciones
 
-## Actualizar el listado
+### 1. Elegir la sección correcta
 
-### 1. Editar `data.md`
+El título Markdown se convierte en grupo de búsqueda. Usa grupos operativos concretos,
+por ejemplo Atracciones, Habilidad, Casetas, Restauración, Repostería, Puntos de Interés
+y Farolas.
 
-Las ubicaciones van bajo el título **Ubicaciones**, con sus cuatro columnas:
-`ubication_number`, `name`, `adress`, `coords`. Las coordenadas se escriben `lat,lon`, sin
-espacio y con punto decimal.
+### 2. Usar el esquema correspondiente
 
-No hace falta que caigan en ningún sitio concreto: la compilación comprueba que son
-coherentes entre sí, no contra un lugar declarado. Tampoco hay un número de filas esperado.
+Negocios:
 
-### 2. Revisar la sección **Calles**
-
-Los nombres deben coincidir **exactamente** con los de la columna `adress`. Si el recinto no
-tiene calles que trazar, la sección puede quedar sin filas: la aplicación funciona igual,
-sin trazados.
-
-### 3. Revisar `STREET_FIXES`
-
-En `scripts/build.py`. Corrige erratas concretas del origen. Si alguna ya no aparece en
-`data.md`, la compilación lo avisa y esa entrada se puede borrar.
-
-### 4. Compilar
-
-```
-python3 scripts/build.py
+```text
+parcel | trade_name | legal_name | activity_type | coords
 ```
 
-Se detiene con un mensaje concreto ante cualquier dato inválido, indicando la línea.
+Puntos generales y farolas:
 
-### 5. Leer los avisos
+```text
+parcel | name | type | coords
+```
 
-La salida no solo dice `OK`. También señala, sin detenerse, lo que conviene revisar:
+Calles:
 
-- Ubicaciones muy alejadas del grueso del listado. Puede ser correcto —un punto en otra
-  parte de la ciudad— o una coordenada mal copiada. Lo decide quien conoce el operativo.
-- Calles con una distancia rara entre extremos, o sin coordenadas.
-- Correcciones de errata que ya no corresponden a ninguna fila.
+```text
+street | start | end | waypoints
+```
 
-### 6. Comprobar antes de publicar
+No cambies los encabezados ni añadas una columna solo a una fila.
 
-- Abrir `dist/index.html` y buscar varias ubicaciones del listado nuevo.
-- Comprobar en un **móvil real** que el enlace abre la ficha en el punto correcto,
-  contrastando contra `data.md` y no de memoria.
-- Si hay calles, comprobar que el trazado dibuja la calle y no un rodeo.
+### 3. Separar marca, titular y actividad
+
+- `trade_name`: nombre público del negocio, solo si está confirmado.
+- `legal_name`: titular o razón social del documento oficial.
+- `activity_type`: lo que hace el negocio o su categoría operativa.
+
+Si el titular es una persona y no hay marca, deja `trade_name` vacío. La lista mostrará la
+actividad y el nombre personal quedará únicamente en el detalle, fuera de la búsqueda.
+
+Si no existe nombre comercial conocido, no lo inventes. Para una empresa puede mostrarse
+su razón social; para una persona se usa la actividad.
+
+### 4. Conciliar por parcela
+
+La parcela, o el conjunto completo de parcelas, es la clave frente al listado oficial.
+Conserva los nombres comerciales ya confirmados y completa `legal_name` y
+`activity_type` desde el documento vigente.
+
+En filas agrupadas incluye todas las parcelas en `parcel`, separadas por comas. La app
+mostrará la primera y buscará todas.
+
+Si una fila no aparece en el listado, conserva los datos operativos existentes y anótala
+para revisión de campo. No derives coordenadas precisas del plano.
+
+### 5. Coordenadas
+
+Escribe `lat,lon`, sin espacio y con punto decimal. Conserva todos los decimales. Antes de
+publicar, contrasta el botón de mapa con `data.md`, no de memoria.
+
+## Verificar y compilar
+
+Desde la raíz:
+
+```powershell
+$env:PYTHONDONTWRITEBYTECODE='1'; python -m unittest discover -s tests -v
+$env:PYTHONDONTWRITEBYTECODE='1'; python scripts/build.py
+```
+
+Lee también los avisos del build. Después sirve `dist/` por HTTP para comprobar el service
+worker y la interacción:
+
+```powershell
+python -m http.server 4173 --directory dist
+```
+
+Comprueba como mínimo:
+
+1. búsqueda por cada parcela de una agrupación;
+2. búsqueda por actividad y grupo;
+3. nombre personal ausente en la lista y en la búsqueda;
+4. titular visible solo al abrir el detalle;
+5. exclusividad y cierre exterior del detalle;
+6. copia de coordenadas;
+7. enlace de mapa independiente;
+8. versión `u24-<hash>` nueva en `dist/sw.js`.
 
 ## Regenerar la tipografía
 
-La fuente va subconjuntada a los caracteres que la aplicación necesita. Si el listado nuevo
-trae uno que no cubre —un nombre con un símbolo que antes no se usaba—, la compilación se
-detiene y lo indica.
+Si aparece un carácter no cubierto, el build se detiene. Regenera el subconjunto y vuelve
+a probar:
 
+```powershell
+python -m pip install fonttools brotli
+python scripts/subset-fonts.py
+python scripts/build.py
 ```
-pip install fonttools brotli
-python3 scripts/subset-fonts.py
-python3 scripts/build.py
-```
 
-El script toma los originales de `src/fonts/original/` y se detiene si la versión no es la
-esperada. Ver `src/fonts/original/origen.md`.
+## Cambiar el operativo o la marca
 
-## Cambiar el rótulo del operativo
+- Rótulo del operativo: `OPERATIVO` en `scripts/build.py`.
+- Metadatos: `src/template.html` y `src/manifest.webmanifest`.
+- Emblema: `src/logo.svg`.
+- Iconos publicados: `icons/`.
 
-`OPERATIVO`, en el bloque de configuración del principio de `scripts/build.py`. Es el texto
-que aparece bajo el buscador.
-
-## Cambiar la marca
-
-El nombre de la unidad y su emblema aparecen en varios sitios, y ninguno detiene la
-compilación: se publicaría con la marca antigua sin aviso.
-
-| Dónde | Qué |
-| --- | --- |
-| `src/template.html` | `<title>`, `meta description`, `apple-mobile-web-app-title` |
-| `src/manifest.webmanifest` | `name`, `short_name`, `description` |
-| `scripts/build.py` | el `aria-label` del emblema, en `read_logo()` |
-| `src/sw.js` | plantilla del service worker; la versión de `CACHE` se genera automáticamente |
-| `src/logo.svg` | el emblema que se empotra |
-| `icons/` | los siete iconos que se publican, y `logo/` como original |
+La versión del service worker no se edita a mano: el build la calcula a partir del HTML,
+manifiesto y plantilla del worker.
 
 ## Publicar
 
-`dist/` se commitea: no se ejecuta ninguna compilación en el despliegue, así que lo
-publicado es lo que haya en el repositorio. Hay que commitear `dist/` junto con los cambios
-que la generaron.
+`netlify.toml` publica `dist/`. El build no se ejecuta en Netlify, por lo que hay que
+commitear los archivos de `dist/` junto con `data.md`, código, pruebas y documentación.
+No hagas push o despliegue sin autorización explícita.

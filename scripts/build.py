@@ -73,6 +73,19 @@ NUMERIC_LABEL_RE = re.compile(r"^\d+(-\d+)*$")
 FAROLA_LABEL_RE = re.compile(r"^[A-D]\d+$")
 SECTION_RE = re.compile(r"^#{1,6}\s+(.*)$")
 
+BUSINESS_HEADERS = ("parcel", "trade_name", "legal_name", "activity_type", "coords")
+GENERAL_HEADERS = ("parcel", "name", "type", "coords")
+STREET_HEADERS = ("street", "start", "end", "waypoints")
+SUPPORTED_HEADERS = {BUSINESS_HEADERS, GENERAL_HEADERS, STREET_HEADERS}
+
+PUBLIC_LEGAL_RE = re.compile(
+    r"(?:\bgrupo\b|\basoc\.?\b|\basociaci[oó]n\b|\bpartido\b|\bsindical\b|"
+    r"\bayuntamiento\b|\borganizaci[oó]n\b|\bsociedad\b|\bclub\b|"
+    r"\bs\s*\.?\s*l\s*\.?(?:\s*u\s*\.?)?(?!\w)|"
+    r"\bs\s*\.?\s*a\s*\.?(?!\w))",
+    re.IGNORECASE,
+)
+
 FAROLA_COLORS = {
     "A": "blue",
     "B": "green",
@@ -122,11 +135,7 @@ def haversine(a, b):
 
 
 def read_sections():
-    """Devuelve las filas de cada tabla, agrupadas por titulo de seccion.
-
-    Las dos tablas tienen cuatro columnas, asi que lo que las distingue es el
-    encabezado que las precede, no su forma.
-    """
+    """Devuelve titulo y filas de cada tabla, agrupados por seccion."""
     secciones, actual = {}, None
 
     for lineno, raw in enumerate(DATA.read_text(encoding="utf-8").splitlines(), 1):
@@ -135,7 +144,9 @@ def read_sections():
         titulo = SECTION_RE.match(line)
         if titulo:
             actual = normalize(titulo.group(1))
-            secciones.setdefault(actual, [])
+            secciones.setdefault(
+                actual, {"title": titulo.group(1).strip(), "rows": []}
+            )
             continue
 
         if not line.startswith("|"):
@@ -147,7 +158,7 @@ def read_sections():
         if actual is None:
             fail(f"data.md linea {lineno}: hay una tabla antes del primer titulo")
 
-        secciones[actual].append((lineno, cells))
+        secciones[actual]["rows"].append((lineno, cells))
 
     return secciones
 
@@ -166,44 +177,128 @@ def farola_marker(label, name):
     return FAROLA_COLORS[label[0]]
 
 
-def build_locations(rows):
+def is_public_legal_name(value):
+    """Una razon social u organizacion puede mostrarse y buscarse publicamente."""
+    return bool(value and PUBLIC_LEGAL_RE.search(value))
+
+
+def choose_public_name(trade_name, legal_name, activity_type, fallback, parcel):
+    """Elige el rotulo publico sin convertir un nombre personal en indice."""
+    if fallback:
+        return fallback
+    if trade_name:
+        return trade_name
+    if is_public_legal_name(legal_name):
+        return legal_name
+    return activity_type or parcel
+
+
+def group_search_terms(group, activity_type):
+    terms = [group, activity_type]
+    if normalize(group) == "casetas":
+        terms.extend(("caseta", "casetas", f"caseta {activity_type}"))
+    return " ".join(term for term in terms if term)
+
+
+def table_headers(section, key):
+    rows = section["rows"]
+    if not rows:
+        return (), []
+    lineno, cells = rows[0]
+    headers = tuple(normalize(cell) for cell in cells)
+    if headers not in SUPPORTED_HEADERS:
+        fail(
+            f"data.md linea {lineno}, seccion {section['title']!r}: "
+            f"encabezado no admitido {headers!r}"
+        )
+    return headers, rows[1:]
+
+
+def build_locations(sections):
     locations = []
-    for index, (lineno, cells) in enumerate(rows):
-        if len(cells) != 4:
-            fail(f"data.md linea {lineno}: se esperaban 4 columnas, hay {len(cells)}")
+    for key, section in sections.items():
+        headers, rows = table_headers(section, key)
+        if not headers or headers == STREET_HEADERS:
+            continue
 
-        label, name, street, coords = cells
-        if not label or not name:
-            fail(f"data.md linea {lineno}: identificador o nombre vacio")
+        group = section["title"]
+        for lineno, cells in rows:
+            if len(cells) != len(headers):
+                fail(
+                    f"data.md linea {lineno}, seccion {group!r}: se esperaban "
+                    f"{len(headers)} columnas, hay {len(cells)}"
+                )
 
-        match = COORDS_RE.match(coords)
-        if not match:
-            fail(f"data.md linea {lineno}: coordenadas invalidas {coords!r}")
-        lat, lon = match.group(1), match.group(2)
+            values = dict(zip(headers, cells))
+            label = values["parcel"]
+            coords = values["coords"]
+            if not label:
+                fail(f"data.md linea {lineno}, seccion {group!r}: parcela vacia")
 
-        street = STREET_FIXES.get(street, street)
+            match = COORDS_RE.match(coords)
+            if not match:
+                fail(f"data.md linea {lineno}: coordenadas invalidas {coords!r}")
+            lat, lon = match.group(1), match.group(2)
 
-        # Los rangos son enumeraciones, no intervalos: se parten por "-".
-        numbers = (
-            [int(n) for n in label.split("-")] if NUMERIC_LABEL_RE.match(label) else []
-        )
+            if headers == BUSINESS_HEADERS:
+                trade_name = values["trade_name"]
+                legal_name = values["legal_name"]
+                activity_type = values["activity_type"]
+                fallback = ""
+            else:
+                trade_name = ""
+                legal_name = ""
+                activity_type = values["type"]
+                fallback = values["name"]
 
-        locations.append(
-            {
-                "id": f"loc-{index:03d}",
-                "label": label,
-                "display": compact_label(label, numbers),
-                "marker": farola_marker(label, name),
-                "numbers": numbers,
-                "name": name,
-                "street": street,
-                "lat": lat,
-                "lon": lon,
-                "search": normalize(f"{name} {label} {street}"),
-                "flat": flatten(f"{name} {label} {street}"),
-                "nameSearch": normalize(name),
-            }
-        )
+            name = choose_public_name(
+                trade_name, legal_name, activity_type, fallback, label
+            )
+            personal_legal_name = bool(
+                legal_name and not is_public_legal_name(legal_name)
+            )
+            public_legal_name = "" if personal_legal_name else legal_name
+            street = ""
+
+            numbers = (
+                [int(n) for n in label.split("-")]
+                if NUMERIC_LABEL_RE.match(label)
+                else []
+            )
+            searchable = " ".join(
+                value
+                for value in (
+                    label,
+                    name,
+                    trade_name,
+                    public_legal_name,
+                    group_search_terms(group, activity_type),
+                    street,
+                )
+                if value
+            )
+
+            locations.append(
+                {
+                    "id": f"loc-{len(locations):03d}",
+                    "label": label,
+                    "display": compact_label(label, numbers),
+                    "marker": farola_marker(label, name),
+                    "numbers": numbers,
+                    "name": name,
+                    "group": group,
+                    "tradeName": trade_name,
+                    "legalName": legal_name,
+                    "activityType": activity_type,
+                    "isPersonalLegalName": personal_legal_name,
+                    "street": street,
+                    "lat": lat,
+                    "lon": lon,
+                    "search": normalize(searchable),
+                    "flat": flatten(searchable),
+                    "nameSearch": normalize(" ".join((name, trade_name))),
+                }
+            )
     return locations
 
 
@@ -373,7 +468,16 @@ def check_charset(locations, streets, template):
 
     usados = set(OPERATIVO) | set(ui_texts(template))
     for loc in locations:
-        usados |= set(loc["display"]) | set(loc["name"]) | set(loc["street"])
+        for key in (
+            "display",
+            "name",
+            "group",
+            "tradeName",
+            "legalName",
+            "activityType",
+            "street",
+        ):
+            usados |= set(loc[key])
         usados |= set(loc["lat"]) | set(loc["lon"])
     for street in streets:
         usados |= set(street["name"])
@@ -493,16 +597,21 @@ def main():
     template = TEMPLATE.read_text(encoding="utf-8")
     secciones = read_sections()
 
-    filas_ubicaciones = drop_header(secciones.get("ubicaciones", []), "ubication_number")
-    if not filas_ubicaciones:
-        fail("data.md no tiene ninguna fila bajo el titulo «Ubicaciones»")
-
-    locations = build_locations(filas_ubicaciones)
+    locations = build_locations(secciones)
+    if not locations:
+        fail("data.md no tiene ninguna fila de ubicacion")
     numbers = check_unique(locations)
     centro, mediana, raros = check_coherence(locations)
 
-    filas_calles = drop_header(secciones.get("calles", []), "street")
+    calles = secciones.get("calles", {"title": "Calles", "rows": []})
+    _, filas_calles = table_headers(calles, "calles")
     streets, sin_coords, avisos = build_streets(filas_calles, locations, centro)
+
+    filas_ubicaciones = []
+    for key, section in secciones.items():
+        headers, rows = table_headers(section, key)
+        if headers in (BUSINESS_HEADERS, GENERAL_HEADERS):
+            filas_ubicaciones.extend(rows)
 
     n_chars = check_charset(locations, streets, template)
 
@@ -538,7 +647,7 @@ def main():
 
 def report(locations, streets, numbers, centro, mediana, raros, avisos, sin_coords,
            filas, vendor, n_chars, n_refs):
-    calles = sorted({loc["street"] for loc in locations})
+    calles = sorted({loc["street"] for loc in locations if loc["street"]})
     sin_numero = [loc["label"] for loc in locations if not loc["numbers"]]
     total = sum(f.stat().st_size for f in DIST.rglob("*") if f.is_file())
     n_files = sum(1 for f in DIST.rglob("*") if f.is_file())
@@ -555,7 +664,11 @@ def report(locations, streets, numbers, centro, mediana, raros, avisos, sin_coor
 
     # Una correccion de errata que ya no corresponde a ninguna fila es
     # configuracion muerta: no rompe nada, pero engana al que la lea.
-    crudas = {cells[2] for _, cells in filas}
+    crudas = {
+        cells[2]
+        for _, cells in filas
+        if len(cells) == 4 and cells[2]
+    }
     for errata in STREET_FIXES:
         if errata not in crudas:
             print(f"    AVISO  STREET_FIXES corrige {errata!r}, que ya no esta en data.md")
