@@ -1,50 +1,66 @@
+import base64
 import re
+import tempfile
 import unittest
+import xml.etree.ElementTree as ET
+from pathlib import Path
+from unittest.mock import patch
 
 from scripts import build
 
 
-BUSINESS_HEADERS = ["parcel", "trade_name", "legal_name", "activity_type", "coords"]
-GENERAL_HEADERS = ["parcel", "name", "type", "coords"]
+BUSINESS_HEADERS = [
+    "parcel",
+    "trade_name",
+    "legal_name",
+    "group",
+    "activity_type",
+    "coords",
+]
+GENERAL_HEADERS = ["parcel", "name", "group", "coords"]
 
 
-def section(title, headers, *rows):
-    return {
-        build.normalize(title): {
+def table(title, headers, *rows):
+    return [
+        {
             "title": title,
-            "rows": [(1, headers)]
-            + [(index + 2, row) for index, row in enumerate(rows)],
+            "line": 1,
+            "headers": tuple(headers),
+            "rows": [(index + 2, row) for index, row in enumerate(rows)],
         }
-    }
+    ]
 
 
-def single_business(parcel, trade_name, legal_name, activity_type, coords):
+def single_business(
+    parcel, trade_name, legal_name, group, activity_type, coords
+):
     return build.build_locations(
-        section(
+        table(
             "Prueba",
             BUSINESS_HEADERS,
-            [parcel, trade_name, legal_name, activity_type, coords],
+            [parcel, trade_name, legal_name, group, activity_type, coords],
         )
     )[0]
 
 
-def single_general(parcel, name, location_type, coords):
+def single_general(parcel, name, group, coords):
     return build.build_locations(
-        section("Prueba", GENERAL_HEADERS, [parcel, name, location_type, coords])
+        table("Prueba", GENERAL_HEADERS, [parcel, name, group, coords])
     )[0]
 
 
 class LocationDisplayTests(unittest.TestCase):
     def test_trade_name_has_priority_over_company(self):
         locations = build.build_locations(
-            section(
-                "Casetas",
+            table(
+                "Ubicaciones",
                 BUSINESS_HEADERS,
                 [
                     "CJ-01",
                     "Arena",
                     "Byblos Almería, S.L.",
-                    "Juvenil",
+                    "Casetas",
+                    "Caseta Juvenil",
                     "36.835720,-2.429620",
                 ],
             )
@@ -55,10 +71,17 @@ class LocationDisplayTests(unittest.TestCase):
 
     def test_company_is_public_fallback(self):
         locations = build.build_locations(
-            section(
-                "Restauración",
+            table(
+                "Ubicaciones",
                 BUSINESS_HEADERS,
-                ["RT-03", "", "Donaelia, S.L.", "Mesón", "36.836216,-2.430316"],
+                [
+                    "RT-03",
+                    "",
+                    "Donaelia, S.L.",
+                    "Restauración",
+                    "Generales",
+                    "36.836216,-2.430316",
+                ],
             )
         )
 
@@ -67,13 +90,14 @@ class LocationDisplayTests(unittest.TestCase):
 
     def test_person_is_private_and_activity_is_public(self):
         locations = build.build_locations(
-            section(
-                "Habilidad",
+            table(
+                "Ubicaciones",
                 BUSINESS_HEADERS,
                 [
                     "H-07",
                     "",
                     "Carbajo Gordillo, Vicente Manuel",
+                    "Habilidad",
                     "Dardos",
                     "36.835387,-2.430832",
                 ],
@@ -96,7 +120,12 @@ class LocationDisplayTests(unittest.TestCase):
         ):
             with self.subTest(legal_name=legal_name):
                 location = single_business(
-                    "H-01", "", legal_name, "Actividad", "36.835387,-2.430832"
+                    "H-01",
+                    "",
+                    legal_name,
+                    "Habilidad",
+                    "Actividad",
+                    "36.835387,-2.430832",
                 )
                 self.assertTrue(location["isPersonalLegalName"])
                 self.assertEqual(location["name"], "Actividad")
@@ -104,14 +133,15 @@ class LocationDisplayTests(unittest.TestCase):
 
     def test_group_and_activity_are_searchable(self):
         locations = build.build_locations(
-            section(
-                "Casetas",
+            table(
+                "Ubicaciones",
                 BUSINESS_HEADERS,
                 [
                     "CT-01, CT-02",
                     "Caseta CSIF",
                     "",
-                    "Tradicional",
+                    "Casetas",
+                    "Caseta Tradicional",
                     "36.837934,-2.431370",
                 ],
             )
@@ -123,15 +153,146 @@ class LocationDisplayTests(unittest.TestCase):
         self.assertIn("caseta tradicional", location["search"])
         self.assertIn("casetas", location["search"])
 
-    def test_general_location_schema_remains_supported(self):
+    def test_group_comes_from_the_row_not_the_markdown_heading(self):
+        location = build.build_locations(
+            table(
+                "Título editorial cualquiera",
+                BUSINESS_HEADERS,
+                [
+                    "RT-02",
+                    "",
+                    "Titular privado",
+                    "Bebidas Espirituosas",
+                    "Mojitos",
+                    "36.836155,-2.430647",
+                ],
+            )
+        )[0]
+
+        self.assertEqual(location["group"], "Bebidas Espirituosas")
+        self.assertEqual(
+            (location["menuCode"], location["menuName"]),
+            ("B", "Bebidas espirituosas"),
+        )
+
+    def test_reader_consumes_every_table_and_skips_visual_separators(self):
+        source = """# Datos
+
+## Ubicaciones
+
+| parcel | trade_name | legal_name | group | activity_type | coords |
+| --- | --- | --- | --- | --- | --- |
+| A-01 | Jet | Empresa, S.L. | Atracciones | Adultos | 36.834454,-2.430808 |
+| - | - | - | - | - | - |
+| H-01 | | Persona | Habilidad | Tiro | 36.834880,-2.431289 |
+
+| parcel | name | group | coords |
+| --- | --- | --- | --- |
+| D3 | Farola | Puntos de Referencia | 36.835109,-2.429147 |
+
+## Calles
+
+| street | start | end | waypoints |
+| --- | --- | --- | --- |
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            data = Path(directory) / "data.md"
+            data.write_text(source, encoding="utf-8")
+            with patch.object(build, "DATA", data):
+                tables = build.read_tables()
+
+        self.assertEqual([item["headers"] for item in tables], [
+            build.BUSINESS_HEADERS,
+            build.GENERAL_HEADERS,
+            build.STREET_HEADERS,
+        ])
+        locations = build.build_locations(tables)
+        self.assertEqual([location["label"] for location in locations], ["A-01", "H-01", "D3"])
+
+    def test_street_routes_do_not_depend_on_a_removed_address_column(self):
+        rows = [
+            (
+                1,
+                [
+                    "Calle de prueba",
+                    "36.834500,-2.430500",
+                    "36.835000,-2.430500",
+                    "",
+                ],
+            )
+        ]
+
+        streets, incomplete, warnings = build.build_streets(
+            rows, (36.834750, -2.430500)
+        )
+
+        self.assertEqual([street["name"] for street in streets], ["Calle de prueba"])
+        self.assertEqual(streets[0]["count"], 0)
+        self.assertEqual(incomplete, [])
+        self.assertEqual(warnings, [])
+
+    def test_navigation_group_mapping(self):
+        expected = {
+            "Atracciones": ("A", "Atracciones"),
+            "Habilidad": ("H", "Habilidad"),
+            "Casetas": ("C", "Casetas"),
+            "Restauración": ("RT", "Restauración"),
+            "Bebidas Espirituosas": ("B", "Bebidas espirituosas"),
+            "Repostería": ("R", "Repostería"),
+            "Puntos de Interes": ("PI", "Puntos de interés"),
+            "Aseos Publicos": ("AP", "Aseos públicos"),
+            "Acceso": ("Acc", "Acceso"),
+            "Puntos de Referencia": ("F", "Puntos de referencia"),
+        }
+
+        for source_group, navigation_group in expected.items():
+            with self.subTest(source_group=source_group):
+                self.assertEqual(
+                    build.navigation_group(source_group), navigation_group
+                )
+
+    def test_current_dataset_navigation_groups(self):
+        locations = build.build_locations(build.read_tables())
+        groups = list(
+            dict.fromkeys(
+                (location["menuCode"], location["menuName"])
+                for location in locations
+            )
+        )
+        expected = [
+            ("A", "Atracciones"),
+            ("H", "Habilidad"),
+            ("C", "Casetas"),
+            ("RT", "Restauración"),
+            ("B", "Bebidas espirituosas"),
+            ("R", "Repostería"),
+            ("PI", "Puntos de interés"),
+            ("AP", "Aseos públicos"),
+            ("Acc", "Acceso"),
+            ("F", "Puntos de referencia"),
+        ]
+
+        self.assertEqual(groups, expected)
+        try:
+            build.check_navigation_groups(locations)
+        except SystemExit as error:
+            self.fail(str(error))
+
+        by_label = {location["label"]: location for location in locations}
+        self.assertEqual(by_label["P-06"]["menuCode"], "RT")
+        for label in ("RT-02", "RT-20", "MJ-01"):
+            with self.subTest(label=label):
+                self.assertEqual(by_label[label]["menuCode"], "B")
+
+    def test_general_location_schema_derives_farola_name(self):
         locations = build.build_locations(
-            section(
-                "Farolas",
+            table(
+                "Ubicaciones",
                 GENERAL_HEADERS,
                 [
                     "A1",
-                    "Farola A1",
-                    "Punto de Referencia",
+                    "Farola",
+                    "Puntos de Referencia",
                     "36.832943,-2.431212",
                 ],
             )
@@ -139,15 +300,28 @@ class LocationDisplayTests(unittest.TestCase):
         location = locations[0]
 
         self.assertEqual(location["name"], "Farola A1")
-        self.assertEqual(location["activityType"], "Punto de Referencia")
+        self.assertEqual(location["activityType"], "Farola")
         self.assertEqual(location["marker"], "blue")
 
+    def test_general_location_uses_explicit_group(self):
+        location = build.build_locations(
+            table(
+                "Ubicaciones",
+                GENERAL_HEADERS,
+                ["PV", "Punto Violeta", "Puntos de Interes", "36.834327,-2.429903"],
+            )
+        )[0]
+
+        self.assertEqual(location["name"], "Punto Violeta")
+        self.assertEqual(location["group"], "Puntos de Interes")
+        self.assertEqual(location["activityType"], "Puntos de Interes")
+
     def test_location_dataset_uses_supported_charset(self):
-        sections = build.read_sections()
-        locations = build.build_locations(sections)
+        tables = build.read_tables()
+        locations = build.build_locations(tables)
         center, _, _ = build.check_coherence(locations)
-        _, street_rows = build.table_headers(sections["calles"], "calles")
-        streets, _, _ = build.build_streets(street_rows, locations, center)
+        street_rows = build.street_rows(tables)
+        streets, _, _ = build.build_streets(street_rows, center)
 
         try:
             covered = build.check_charset(
@@ -158,13 +332,18 @@ class LocationDisplayTests(unittest.TestCase):
 
         self.assertGreater(covered, 0)
 
+    def test_unique_coordinate_validation_accepts_the_current_dataset(self):
+        locations = build.build_locations(build.read_tables())
+
+        self.assertIsNone(build.check_unique_coordinates(locations))
+
     def test_occupied_2026_parcels_match_dataset(self):
         expected_numbers = {
             "A": (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24),
             "CH": (1, 2, 3, 4),
-            "CJ": tuple(number for number in range(1, 29) if number not in {19, 20}),
+            "CJ": tuple(number for number in range(1, 29) if number not in {14, 15, 19, 20}),
             "CT": (1, 2, 3, 4, 5, 8, 9, 15, 16, 17, 18, 19, 20, 21, 25, 26, 27, 28),
-            "E": (1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12),
+            "E": (2, 4, 5, 6, 7, 8, 9, 10, 11, 12),
             "H": (1, 2, 3, 4, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 37, 38, 39, 41, 42, 43, 44, 45, 46, 47),
             "I": (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32),
             "MJ": (1,),
@@ -179,8 +358,8 @@ class LocationDisplayTests(unittest.TestCase):
             for prefix, numbers in expected_numbers.items()
             for number in numbers
         }
-        sections = build.read_sections()
-        locations = build.build_locations(sections)
+        tables = build.read_tables()
+        locations = build.build_locations(tables)
         present = {
             f"{prefix.upper()}-{int(number):02d}"
             for location in locations
@@ -199,7 +378,8 @@ class LocationDisplayTests(unittest.TestCase):
             full_label,
             "Caseta CSIF",
             "",
-            "Tradicional",
+            "Casetas",
+            "Caseta Tradicional",
             "36.837934,-2.431370",
         )
         self.assertEqual(location["display"], "CT-01")
@@ -210,14 +390,24 @@ class LocationDisplayTests(unittest.TestCase):
     def test_grouped_parcels_with_y_show_first(self):
         full_label = "CJ-02, CJ-03 y CJ-04"
         location = single_business(
-            full_label, "Descaro", "", "Juvenil", "36.835594,-2.429621"
+            full_label,
+            "Descaro",
+            "",
+            "Casetas",
+            "Caseta Juvenil",
+            "36.835594,-2.429621",
         )
 
         self.assertEqual(location["display"], "CJ-02")
 
     def test_single_parcel_keeps_its_label(self):
         location = single_business(
-            "CJ-01", "Arena", "", "Juvenil", "36.835720,-2.429620"
+            "CJ-01",
+            "Arena",
+            "",
+            "Casetas",
+            "Caseta Juvenil",
+            "36.835720,-2.429620",
         )
 
         self.assertEqual(location["display"], "CJ-01")
@@ -234,8 +424,8 @@ class LocationDisplayTests(unittest.TestCase):
             with self.subTest(label=label):
                 location = single_general(
                     label,
-                    f"Farola {label}",
-                    "Punto de Referencia",
+                    "Farola",
+                    "Puntos de Referencia",
                     "36.839427,-2.431177",
                 )
                 self.assertEqual(location["marker"], expected_marker)
@@ -244,7 +434,12 @@ class LocationDisplayTests(unittest.TestCase):
 
     def test_non_farola_does_not_receive_marker(self):
         location = single_business(
-            "A-01", "Montaña Jet Star", "", "Adulto", "36.834454,-2.430808"
+            "A-01",
+            "Montaña Jet Star",
+            "",
+            "Atracciones",
+            "Adultos",
+            "36.834454,-2.430808",
         )
 
         self.assertEqual(location["marker"], "")
@@ -275,10 +470,10 @@ class LocationDisplayTests(unittest.TestCase):
             "B1": ("36.832815", "-2.430459", "green"),
             "C1": ("36.832799", "-2.429789", "red"),
         }
-        sections = build.read_sections()
+        tables = build.read_tables()
         by_label = {
             location["label"]: location
-            for location in build.build_locations(sections)
+            for location in build.build_locations(tables)
         }
 
         for label, (lat, lon, marker) in expected.items():
@@ -291,28 +486,18 @@ class LocationDisplayTests(unittest.TestCase):
                 self.assertIn(f"farola {label.lower()}", location["search"])
 
     def test_current_dataset_uses_new_headers_only(self):
-        sections = build.read_sections()
+        tables = build.read_tables()
 
-        for key, section_data in sections.items():
-            if not section_data["rows"]:
-                continue
-            headers = tuple(
-                build.normalize(value) for value in section_data["rows"][0][1]
-            )
-            self.assertIn(
-                headers,
-                {
-                    build.BUSINESS_HEADERS,
-                    build.GENERAL_HEADERS,
-                    build.STREET_HEADERS,
-                },
-                key,
-            )
+        self.assertEqual(
+            [item["headers"] for item in tables],
+            [build.BUSINESS_HEADERS, build.GENERAL_HEADERS, build.STREET_HEADERS],
+        )
+        self.assertEqual(sum(len(item["rows"]) for item in tables), 232)
 
     def test_known_private_and_company_rows_follow_public_name_rules(self):
         locations = {
             loc["label"]: loc
-            for loc in build.build_locations(build.read_sections())
+            for loc in build.build_locations(build.read_tables())
         }
 
         self.assertEqual(locations["H-07"]["name"], "Dardos")
@@ -321,13 +506,17 @@ class LocationDisplayTests(unittest.TestCase):
         self.assertEqual(
             locations["CT-25, CT-26, CT-27, CT-28"]["name"], "Paripé"
         )
-        self.assertEqual(
-            locations["CJ-14, CJ-15"]["name"], "Caseta Juvenil"
-        )
+        self.assertNotIn("CJ-14, CJ-15", locations)
+        self.assertFalse(any(loc["name"] == "Palo Loco" for loc in locations.values()))
 
     def test_every_business_location_has_public_context(self):
-        for location in build.build_locations(build.read_sections()):
-            if location["group"] in {"Puntos de Interes", "Farolas"}:
+        for location in build.build_locations(build.read_tables()):
+            if location["group"] in {
+                "Puntos de Interes",
+                "Aseos Publicos",
+                "Acceso",
+                "Puntos de Referencia",
+            }:
                 continue
             with self.subTest(parcel=location["label"]):
                 self.assertTrue(
@@ -339,7 +528,7 @@ class LocationDisplayTests(unittest.TestCase):
     def test_official_owners_are_present_for_reconciled_rows(self):
         locations = {
             loc["label"]: loc
-            for loc in build.build_locations(build.read_sections())
+            for loc in build.build_locations(build.read_tables())
         }
         attraction_parcels = {
             loc["label"]
@@ -372,10 +561,10 @@ class LocationDisplayTests(unittest.TestCase):
         expected_activities = {
             "CH-01": "Churrería",
             "VN-03": "Vinos",
-            "RT-04": "General",
+            "RT-04": "Generales",
             "RT-06": "Pinchos morunos",
             "RT-10": "Pinchos morunos",
-            "RT-30": "Restauración",
+            "RT-30": "Generales",
         }
         for parcel, activity_type in expected_activities.items():
             with self.subTest(parcel=parcel):
@@ -435,6 +624,61 @@ class LocationDisplayTests(unittest.TestCase):
         self.assertIn("aria-controls", template)
         self.assertIn("prefers-reduced-motion:reduce", template)
 
+    def test_group_navigation_contract_is_present(self):
+        template = build.TEMPLATE.read_text(encoding="utf-8")
+
+        self.assertIn("const GROUPS =", template)
+        self.assertIn("let activeGroup = null;", template)
+        self.assertIn("function groupRow(group)", template)
+        self.assertIn("function backRow()", template)
+        self.assertIn("button.textContent = '...';", template)
+        self.assertIn("button.setAttribute('aria-label', LABEL.backToGroups);", template)
+        self.assertIn("if (!normalize(v))", template)
+        self.assertIn("renderGroups();", template)
+        self.assertIn("renderGroup(activeGroup);", template)
+
+    def test_operational_group_row_matches_location_geometry(self):
+        template = build.TEMPLATE.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "groups.set(loc.menuCode, {code:loc.menuCode, name:loc.menuName});",
+            template,
+        )
+        self.assertIn(
+            "LOCATIONS.filter(loc => loc.menuCode === groupCode)", template
+        )
+        self.assertIn("num.className = 'num';", template)
+        self.assertIn("num.textContent = group.code;", template)
+        self.assertIn("button.className = 'nom group-toggle';", template)
+        self.assertIn("txt.className = 'txt';", template)
+        self.assertIn("disabledMap.className = 'go group-map-disabled';", template)
+        self.assertIn("disabledMap.setAttribute('aria-hidden', 'true');", template)
+        self.assertIn(".go.group-map-disabled{color:var(--faint);pointer-events:none}", template)
+        self.assertIn("function pinIcon()", template)
+        self.assertEqual(template.count("pill.append(pinIcon());"), 2)
+        self.assertNotIn("group-count", template)
+
+    def test_header_stays_outside_the_scroll_container(self):
+        template = build.TEMPLATE.read_text(encoding="utf-8")
+
+        self.assertIn("html{height:100%;background:var(--bg)}", template)
+        self.assertIn("height:100vh;height:100dvh;", template)
+        self.assertIn(
+            "display:grid;grid-template-rows:auto minmax(0,1fr);overflow:hidden;",
+            template,
+        )
+        self.assertIn(
+            "main{min-height:0;overflow-y:auto;overscroll-behavior-y:contain;",
+            template,
+        )
+        self.assertNotIn("position:sticky", template)
+
+    def test_nonempty_query_keeps_global_search(self):
+        template = build.TEMPLATE.read_text(encoding="utf-8")
+
+        self.assertIn("activeGroup = null;", template)
+        self.assertIn("render(search(v));", template)
+
     def test_coordinates_copy_without_visible_instruction_or_text_mutation(self):
         template = build.TEMPLATE.read_text(encoding="utf-8")
 
@@ -464,6 +708,90 @@ class LocationDisplayTests(unittest.TestCase):
         self.assertNotEqual(old_match.group(1), new_match.group(1))
         self.assertNotIn("__APP_VERSION__", old_worker)
         self.assertNotIn("__APP_VERSION__", new_worker)
+
+
+class MinimapTests(unittest.TestCase):
+    def test_projection_keeps_latitude_and_longitude_axes_in_order(self):
+        calibration = {
+            "origin_lat_lon": [0, 0],
+            "metres_per_degree": [1, 1],
+            "svg_units_per_local_metre": [[2, 3, 10], [5, -7, 100]],
+        }
+
+        self.assertEqual(build.project_minimap_point("2", "3", calibration), [22, 101])
+
+    def test_current_farolas_land_on_the_reviewed_intersections(self):
+        locations = build.build_locations(build.read_tables())
+        build.build_minimap(locations)
+        by_label = {location["label"]: location for location in locations}
+        expected = {
+            "A8": [76.507, 8.361],
+            "A1": [74.593, 261.460],
+            "B4": [98.972, 148.876],
+            "C7": [107.914, 82.798],
+            "D2": [148.201, 209.584],
+        }
+        for label, point in expected.items():
+            with self.subTest(label=label):
+                self.assertEqual(by_label[label]["mapPoint"], point)
+
+    def test_minimap_generation_does_not_change_operational_coordinates(self):
+        locations = build.build_locations(build.read_tables())
+        before = [(loc["lat"], loc["lon"]) for loc in locations]
+
+        build.build_minimap(locations)
+
+        self.assertEqual([(loc["lat"], loc["lon"]) for loc in locations], before)
+        self.assertTrue(all(loc["mapPoint"] is not None for loc in locations))
+
+    def test_viewport_keeps_context_and_marker_visible_at_map_edges(self):
+        for point, expected in (
+            ([80, 150], [5, 90, 150, 120]),
+            ([76.5, 8.4], [1.5, -12, 150, 120]),
+            ([148.2, 266.9], [72, 189, 150, 120]),
+        ):
+            with self.subTest(point=point):
+                self.assertEqual(build.minimap_viewbox(point, [0, 0, 210, 297]), expected)
+
+    def test_edge_viewport_leaves_room_for_the_whole_pin_not_only_its_tip(self):
+        for point in ([76.507, 8.361], [0, 0], [210, 297]):
+            with self.subTest(point=point):
+                x, y, width, height = build.minimap_viewbox(point, [0, 0, 210, 297])
+                self.assertLessEqual(x, point[0] - 5)
+                self.assertLessEqual(y, point[1] - 11)
+                self.assertGreaterEqual(x + width, point[0] + 5)
+                self.assertGreaterEqual(y + height, point[1] + 1)
+
+    def test_outside_point_is_not_moved_to_a_false_position(self):
+        location = single_general("X", "Fuera", "Acceso", "36.850000,-2.431000")
+
+        build.build_minimap([location])
+
+        self.assertIsNone(location["mapPoint"])
+        self.assertIsNone(location["mapView"])
+        self.assertEqual(location["lat"], "36.850000")
+
+    def test_map_is_self_contained_and_excludes_diagnostic_overlays(self):
+        config = build.build_minimap(build.build_locations(build.read_tables()))
+        prefix, content = config["image"].split(",", 1)
+        self.assertEqual(prefix, "data:image/svg+xml;base64")
+        root = ET.fromstring(base64.b64decode(content))
+        self.assertEqual(root.get("viewBox"), "0 0 210 297")
+        self.assertIsNone(root.find(".//*[@id='farolas-nota']"))
+        self.assertIsNone(root.find(".//*[@id='u24-georeference']"))
+        self.assertIsNone(root.find(".//*[@id='referencias-farolas']"))
+        for element in root.iter():
+            if element.tag.endswith("}image"):
+                href = element.get("{http://www.w3.org/1999/xlink}href", element.get("href", ""))
+                self.assertTrue(href.startswith("data:image/"))
+
+    def test_missing_calibration_stops_build_instead_of_guessing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "map.svg"
+            path.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 297"/>', encoding="utf-8")
+            with patch.object(build, "MINIMAP", path):
+                with self.assertRaisesRegex(SystemExit, "calibraci"):
+                    build.build_minimap([])
 
 
 if __name__ == "__main__":

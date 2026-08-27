@@ -2,94 +2,67 @@
 
 ## Idioma y nombres
 
-- Documentación y textos de interfaz: español de España.
-- Código: identificadores en inglés y comentarios en español cuando expliquen el porqué.
-- Datos de origen: `snake_case`; modelo generado para JavaScript: `camelCase`.
-- Términos de dominio: `location`, `parcel`, `tradeName`, `legalName`,
+- Documentación e interfaz: español de España.
+- Código: identificadores en inglés; comentarios en español cuando expliquen una decisión.
+- Datos editables: `snake_case`; modelo JavaScript generado: `camelCase`.
+- Términos principales: `location`, `parcel`, `tradeName`, `legalName`,
   `activityType`, `group`, `search`, `flat` y `nameSearch`.
 
-## Estructura
+## Estructura y responsabilidades
 
 ```text
 data.md                  Fuente de verdad editable
-scripts/build.py         Parser, validación, privacidad y generación
+scripts/build.py         Lectura, validación, privacidad y generación
 src/template.html        Aplicación HTML/CSS/JS autocontenida
-src/sw.js                Plantilla del service worker versionado
-tests/test_build.py      Contratos del modelo, datos, UI y caché
-dist/                    Único contenido publicado; generado
-docs/                    Contratos y mantenimiento
+src/minimap.svg          Plano original y calibración para orientación
+src/sw.js                Plantilla del service worker
+tests/test_build.py      Contratos de datos, modelo, interfaz y caché
+dist/                    Artefactos generados que se publican
+docs/                    Producto, contratos y mantenimiento
 ```
 
-`dist/` se reconstruye desde cero. El despliegue no compila: para publicar cambios deben
-commitearse los artefactos generados junto con sus fuentes.
-
-## Responsabilidades
-
-### `data.md`
-
-Conserva el dato literal: parcela, marca, titular, actividad y coordenadas. Los nombres
-personales pertenecen únicamente a `legal_name`; no se duplican en `trade_name`.
-
-### `scripts/build.py`
-
-- reconoce tablas por encabezado exacto;
-- deriva el grupo del título de sección;
-- elige el nombre público;
-- clasifica el titular como público o personal;
-- construye índices sin nombres personales;
-- valida coordenadas, caracteres y referencias;
-- genera una versión determinista de caché para cada aplicación distinta.
-
-### `src/template.html`
-
-Renderiza solo `display`, `name` y el enlace de mapa en la fila cerrada. El detalle se
-crea bajo demanda al pulsar el nombre; hasta entonces el titular no forma parte del
-contenido visible ni accesible.
+- `data.md` conserva parcelas, nombres, grupos, actividades y coordenadas.
+- `scripts/build.py` reconoce los tres esquemas exactos, lee todas las tablas, valida los
+  diez grupos y genera los índices sin nombres personales.
+- `src/template.html` renderiza la interfaz y nunca se rellena manualmente con datos.
+- `src/minimap.svg` conserva la geometría del plano y su transformación GPS → SVG.
+  No es otro catálogo: los puntos y las farolas se calculan desde `data.md` en el build.
+- `dist/` se regenera; sus archivos no son fuente editable.
 
 ## Interfaz
 
 - Mobile-first, tema oscuro y una columna máxima de 600 px.
-- La parcela visible mantiene ancho fijo; una agrupación muestra solo la primera.
-- El nombre público es un botón de detalle con foco visible.
-- El icono derecho abre Google Maps y no alterna el detalle.
-- Solo puede existir un detalle abierto.
-- Pulsar el mismo nombre, otro nombre, fuera de la fila o cambiar la búsqueda cierra el
-  detalle anterior.
-- Escape cierra el detalle y devuelve el foco al nombre.
-- El detalle muestra únicamente campos con valor y contiene el botón de coordenadas.
-- La entrada usa una animación breve; `prefers-reduced-motion` la desactiva.
-- Las farolas conservan la barra semántica de 4 x 40 px centrada en la cabecera.
+- La cabecera queda fuera del área desplazable; solo `main` desplaza la lista.
+- Con el buscador vacío aparecen los diez grupos en el orden del catálogo del build.
+- La fila de grupo mantiene las mismas columnas que una ubicación y usa un pin gris.
+- La parcela visible ocupa una columna fija; las parcelas agrupadas muestran la primera.
+- El nombre abre el detalle y el icono derecho abre Google Maps.
+- Solo puede haber un detalle abierto. Se cierra al repetir el nombre, abrir otro, pulsar
+  fuera, cambiar la búsqueda o pulsar Escape.
+- El detalle muestra únicamente campos con valor e incluye las coordenadas copiables.
+- Debajo aparece el minimapa estático sobre fondo claro, con un pin de destino y las
+  farolas. No captura gestos ni añade controles; Google Maps conserva su botón separado.
+- Las farolas conservan su barra semántica lateral.
+
+Las medidas y estilos vigentes están en `src/template.html`; la documentación no debe
+duplicarlos como constantes normativas porque se desactualizan con facilidad.
 
 ## Accesibilidad y privacidad
 
-- El listado usa `ul`/`li`; el detalle usa `dl`, `dt` y `dd`.
-- El botón de nombre mantiene `aria-expanded` y `aria-controls`.
-- El enlace de mapa se etiqueta solo con nombre público, parcela e indicación pública.
-- Las etiquetas iniciales nunca concatenan `legalName`.
-- La región activa anuncia resultados y copia de coordenadas.
-- Toda la interacción funciona con teclado.
+- El listado usa `ul`/`li` y el detalle `dl`/`dt`/`dd`.
+- El botón del nombre mantiene `aria-expanded` y `aria-controls`.
+- El enlace de mapa se etiqueta con información pública.
+- La región activa anuncia resultados y la copia de coordenadas.
+- Los nombres personales pueden existir en el JSON para el detalle, pero no en el texto
+  inicial, las etiquetas accesibles de la fila ni los índices de búsqueda.
 
-La privacidad se aplica al crear el modelo de búsqueda, no solo en la presentación. Un
-nombre personal puede existir en el JSON de datos porque debe mostrarse al abrir el
-detalle, pero no está en ningún índice ni en el texto inicial de la página.
+## Validaciones y dependencias
 
-## Validaciones del build
+Detienen el build los esquemas desconocidos, filas incompletas, grupos no catalogados,
+coordenadas inválidas o duplicadas, incoherencia geográfica extrema, caracteres sin
+cobertura, marcadores de plantilla pendientes y referencias ausentes en `dist/`.
 
-Detienen el proceso:
-
-- encabezados o número de columnas no admitidos;
-- parcela vacía o coordenadas inválidas/duplicadas;
-- incoherencia geográfica extrema;
-- caracteres visibles no cubiertos por la fuente;
-- marcadores de plantilla sin sustituir;
-- referencias de `dist/` ausentes.
-
-Las pruebas protegen además las parcelas oficiales, los nombres públicos conocidos, la
-exclusión de personas, las farolas, el contrato del desplegable y el cambio automático de
-versión de caché.
-
-## Dependencias y alcance
-
-La app no añade dependencias de ejecución. Fuse.js, fuentes, emblema y datos se empotran
-en `index.html`; el arranque y la búsqueda funcionan sin cobertura. Cualquier nueva
-dependencia o cambio del flujo de mapa requiere aprobación explícita.
+La aplicación no añade dependencias de ejecución remotas: Fuse.js, fuentes, emblema,
+plano y datos se empotran en `index.html`. El plano se incluye una sola vez y solo se
+crea la vista del detalle abierto. Cualquier dependencia nueva o cambio del flujo de
+mapa requiere aprobación explícita.

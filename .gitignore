@@ -17,3 +17,6 @@ htmlcov/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Archivos temporales
+docs/temporales/

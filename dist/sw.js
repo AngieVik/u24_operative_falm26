@@ -2,7 +2,7 @@
    Cachea la app completa en la instalación para que buscar funcione sin cobertura.
    Estrategia: cache-first para lo propio; la red solo se usa para actualizar. */
 
-const CACHE = 'u24-267a4e6b4152';
+const CACHE = 'u24-240f760d0f5e';
 const DOC = './index.html';
 
 /* Cuánto se espera a la red antes de servir la copia guardada.
@@ -15,8 +15,8 @@ const DOC = './index.html';
 const NETWORK_TIMEOUT = 1500;
 
 /* Solo lo imprescindible para que la app funcione sin cobertura.
-   index.html ya lleva dentro los datos, el motor de búsqueda, la tipografía
-   y el emblema. Los iconos NO se precachean: los descarga el sistema al
+   index.html ya lleva dentro los datos, el motor de búsqueda, la tipografía,
+   el emblema y el minimapa. Los iconos NO se precachean: los descarga el sistema al
    instalar el acceso directo y no hacen falta para buscar. Precacharlos
    costaba 680 KB extra antes de que la app estuviera lista, justo donde la
    red está saturada. El manejador de fetch los cachea igualmente si el

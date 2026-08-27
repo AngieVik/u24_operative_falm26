@@ -41,21 +41,20 @@
   --pad:16px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{background:var(--bg)}
+html{height:100%;background:var(--bg)}
 body{
   margin:0;background:var(--bg);color:var(--text);
+  height:100vh;height:100dvh;
+  display:grid;grid-template-rows:auto minmax(0,1fr);overflow:hidden;
   font-family:Roboto,system-ui,sans-serif;
   font-size:16px;line-height:1.25;
   -webkit-font-smoothing:antialiased;
-  overscroll-behavior-y:none;
-  padding-bottom:env(safe-area-inset-bottom);
 }
 .ico{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
-/* ── Cabecera ─────────────────────────────────────────
-   Emblema, buscador y rótulo. Único bloque siempre en pantalla. */
+/*Cabecera; Emblema, buscador y rótulo. Único bloque siempre en pantalla.*/
 .head{
-  position:sticky;top:0;z-index:10;
+  z-index:10;
   background:var(--bg);
   padding-top:env(safe-area-inset-top);
   border-bottom:1px solid var(--border);
@@ -73,7 +72,7 @@ body{
   color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
-/* ── Buscador ─────────────────────────────────────── */
+/*Buscador*/
 .field{
   position:relative;display:flex;align-items:center;
   background:var(--field);
@@ -102,18 +101,18 @@ body{
 #clear:active{color:var(--text)}
 body.has-query #clear{display:grid}
 
-/* El recuento no se pinta: durante un aviso no aporta. Se mantiene como
-   región activa para lectores de pantalla. */
+/*El recuento no se pinta. Se mantiene como región activa para lectores de pantalla.*/
 .sr{
   position:absolute;width:1px;height:1px;padding:0;margin:-1px;
   overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
 }
 
-/* ── Lista ────────────────────────────────────────── */
+/*Lista*/
+main{min-height:0;overflow-y:auto;overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom)}
 ul{list-style:none;margin:0;padding:0}
 
-/* Una sola línea cerrada: parcela, nombre y acceso al mapa. El separador fino
-   conserva el ritmo sin convertir cada resultado en una tarjeta. */
+/*Una sola línea cerrada. El separador fino conserva el ritmo sin convertir cada resultado en una tarjeta.*/
 .row{
   display:grid;grid-template-columns:56px minmax(0,1fr) 38px;
   align-items:center;column-gap:0;
@@ -136,15 +135,32 @@ ul{list-style:none;margin:0;padding:0}
   transform:translateY(-50%);
   pointer-events:none;
 }
-.row.farola-blue{--farola-color:#3B82F6}
-.row.farola-green{--farola-color:#22C55E}
-.row.farola-red{--farola-color:#EF4444}
-.row.farola-yellow{--farola-color:#FACC15}
+.farola-blue{--farola-color:#3B82F6}
+.farola-green{--farola-color:#22C55E}
+.farola-red{--farola-color:#EF4444}
+.farola-yellow{--farola-color:#FACC15}
 .row.expanded{background:rgba(255,255,255,.018)}
 .row.expanded.farola::before{top:19px}
+.row.back-row{display:block;min-height:38px;padding:0}
+.group-toggle{
+  width:100%;padding:9px 0;margin:-9px 0;
+  border:0;background:none;color:inherit;
+  font-family:inherit;text-align:left;cursor:pointer;
+}
+.go.group-map-disabled{color:var(--faint);pointer-events:none}
+.go.group-map-disabled .pill{
+  background:rgba(142,147,152,.08);border-color:rgba(142,147,152,.22)
+}
+.group-back{
+  display:block;width:100%;min-height:38px;margin:0;padding:0 12px;
+  border:0;background:none;color:var(--accent);font-family:inherit;
+  text-align:center;font-weight:700;cursor:pointer;
+}
+.group-toggle:focus-visible,.group-back:focus-visible{
+  outline:1px solid #565B61;outline-offset:-1px;border-radius:4px;
+}
 
-/* Ancho fijo, para que los nombres se alineen en columna con etiquetas tan
-   dispares como "3", "180–186" o "S/N". */
+/*Ancho fijo, para que los nombres se alineen en columna con etiquetas tan dispares como "3", "180–186" o "S/N".*/
 .num{
   flex:none;width:auto;
   font-size:12px;font-weight:700;
@@ -172,11 +188,8 @@ ul{list-style:none;margin:0;padding:0}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
-/* Coordenadas a la vista, y copiables al tocarlas: cuando Google Maps no
-   carga son lo único que queda para dictar la posición por radio.
-   Los márgenes negativos compensan el relleno, que da un objetivo táctil de
-   32 px sobre un texto de 16: así la caja ocupa en el flujo lo mismo que una
-   línea de texto y el ritmo vertical no se altera. */
+/*Coordenadas a la vista, y copiables al tocarlas.*/
+/*Los márgenes negativos compensan el relleno, que da un objetivo táctil de 32 px sobre un texto de 16: así la caja ocupa en el flujo lo mismo que una línea de texto y el ritmo vertical no se altera.*/
 .co{
   display:block;
   margin:-5.25px 0 -8px -8px;padding:8px;
@@ -210,12 +223,27 @@ ul{list-style:none;margin:0;padding:0}
   width:100%;margin:7px 0 -5px -8px;padding:8px;
   color:var(--accent);font-size:12.5px;
 }
+/*Plano estático: el fondo opaco permite leer las calles negras del SVG.
+  No captura gestos; deslizar sobre él sigue desplazando la lista.*/
+.minimap{margin:10px 0 0}
+.minimap svg{
+  display:block;width:100%;aspect-ratio:5 / 4;max-height:280px;
+  background:#ECECE8;border-radius:5px;overflow:hidden;pointer-events:none;
+}
+.minimap figcaption{margin-top:4px;color:var(--faint);font-size:9px}
+.minimap-reference circle{fill:var(--farola-color);stroke:#263039;stroke-width:.3}
+.minimap-reference text{
+  fill:#17212B;stroke:#FFF;stroke-width:1;paint-order:stroke;
+  font-family:Roboto,system-ui,sans-serif;font-size:4.5px;font-weight:700;
+  stroke-linejoin:round;
+}
+.minimap-marker path{fill:#17212B;stroke:#FFF;stroke-width:2.4;stroke-linejoin:round}
+.minimap-marker circle{fill:var(--accent)}
 @keyframes detail-in{
   from{opacity:0;transform:translateY(-4px)}
   to{opacity:1;transform:translateY(0)}
 }
-/* El enlace ocupa la columna completa; la pastilla visible se mantiene
-   discreta para no aumentar la altura de la fila. */
+/*El enlace ocupa la columna completa; la pastilla visible se mantiene discreta para no aumentar la altura de la fila.*/
 .go{
   flex:none;width:38px;align-self:stretch;
   display:grid;place-items:center;
@@ -228,13 +256,11 @@ ul{list-style:none;margin:0;padding:0}
 }
 .pill .ico{width:14px;height:14px}
 
-/* La fila de calle se ve igual que las demás: lo que la distingue es su
-   segunda línea y el icono de recorrido del botón. */
+/*La fila de calle se ve igual que las demás: lo que la distingue es su segunda línea y el icono de recorrido del botón.*/
 .go:active .pill{background:var(--accent);border-color:var(--accent);color:var(--bg)}
 .go:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
 
-/* ── Separador de coincidencias aproximadas ───────────
-   Lo que hay debajo se parece a lo tecleado; no coincide con ello. */
+/*Separador de coincidencias aproximadas, lo que hay debajo se parece a lo tecleado; no coincide con ello.*/
 .sep{
   padding:15px var(--pad) 7px;
   font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
@@ -242,7 +268,7 @@ ul{list-style:none;margin:0;padding:0}
   background:var(--bg);
 }
 
-/* ── Sin resultados ───────────────────────────────── */
+/* Sin resultados*/
 .empty{padding:30px var(--pad);color:var(--muted);font-size:14px;line-height:1.45}
 .empty b{display:block;color:var(--text);font-size:16.5px;font-weight:500;margin-bottom:6px}
 .empty[hidden]{display:none}
@@ -269,7 +295,7 @@ ul{list-style:none;margin:0;padding:0}
         <input id="q" type="text"
                autocomplete="off" autocorrect="off" autocapitalize="off"
                spellcheck="false" inputmode="search" enterkeyhint="search"
-               aria-label="Buscar ubicación por nombre o número" aria-controls="list" autofocus>
+               aria-label="Buscar" aria-controls="list" autofocus>
         <button id="clear" type="button" aria-label="Borrar búsqueda">
           <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
@@ -287,9 +313,7 @@ ul{list-style:none;margin:0;padding:0}
 </main>
 
 <script>
-/* Fuse.js — motor de coincidencia aproximada. Se empotra desde src/vendor/ y
-   se envuelve aquí porque el paquete se distribuye como módulo CommonJS: sin
-   este envoltorio no expondría nada a la página. */
+/*Fuse.js, motor de coincidencia aproximada. Se empotra desde src/vendor/ y se envuelve aquí porque el paquete se distribuye como módulo CommonJS: sin este envoltorio no expondría nada a la página.*/
 const Fuse = (function(){
   const module = { exports:{} }, exports = module.exports;
   __FUSE__
@@ -299,52 +323,57 @@ const Fuse = (function(){
 /* Generado desde data.md por scripts/build.py. No editar a mano. */
 const LOCATIONS = __LOCATIONS__;
 const STREETS = __STREETS__;
+const MINIMAP = __MINIMAP__;
+const GROUPS = Array.from(LOCATIONS.reduce((groups, loc) => {
+  if (!groups.has(loc.menuCode)){
+    groups.set(loc.menuCode, {code:loc.menuCode, name:loc.menuName});
+  }
+  return groups;
+}, new Map()).values());
 
-/* Textos visibles. Centralizados para que build.py compruebe que la
-   tipografía subconjuntada cubre todos sus caracteres. */
+/*Textos visibles. Centralizados para que build.py compruebe que la tipografía subconjuntada cubre todos sus caracteres.*/
 const TEXT = {
   approx: 'Quizá buscabas',
   emptyTitle: 'Sin coincidencias',
-  emptyBody: 'Comprueba el número o escribe menos letras del nombre.',
-  placeholder: 'Nombre o número',
+  emptyBody: 'Comprueba el nombre o la parcela.',
+  placeholder: 'Nombre o parcela',
   route: 'Recorrido de la calle',
   parcel: 'Parcela',
   tradeName: 'Nombre comercial',
   legalName: 'Titular / razón social',
   activity: 'Actividad',
   group: 'Grupo',
-  indication: 'Indicación'
+  indication: 'Indicación',
+  minimap: 'Plano orientativo'
 };
 
-/* Etiquetas para lectores de pantalla. No las dibuja la tipografía, así que
-   no entran en la validación de cobertura de build.py. */
+/*Etiquetas para lectores de pantalla. No las dibuja la tipografía, así que no entran en la validación de cobertura de build.py.*/
 const LABEL = {
   open: 'Ver en el mapa ',
   route: 'Ver el recorrido de la calle ',
   copy: 'Copiar coordenadas de ',
-  copied: 'Coordenadas copiadas'
+  copied: 'Coordenadas copiadas',
+  openGroup: 'Abrir grupo ',
+  backToGroups: 'Volver a los grupos',
+  minimap: 'Ubicación orientativa en el recinto: '
 };
 
-/* Ficha de lugar de Google Maps: mapa, punto exacto y accesos a «Cómo llegar»
-   e «Iniciar» dentro de la propia app. Ver docs/03-navegacion-maps.md. */
+/*Ficha de lugar de Google Maps: mapa, punto exacto y accesos a «Cómo llegar» e «Iniciar» dentro de la propia app. Ver docs/03-navegacion-maps.md.*/
 const MAPS = 'https://www.google.com/maps/search/?api=1&query=';
 
-/* Trazado de una calle. Google Maps no sabe dibujar una línea, así que se le
-   pide la ruta a pie entre los dos extremos: el camino que pinta es la calle.
-   A pie y no en coche porque el recinto es peatonal. */
+/*Trazado de una calle. Se le pide la ruta a pie entre los dos extremos a Google Maps: el camino que pinta es la calle.*/
 const MAPS_DIR = 'https://www.google.com/maps/dir/?api=1&travelmode=walking';
 
-/* lucide · map-pin — el destino es un punto en el mapa, no una ruta. */
+/*lucide · map-pin — el destino es un punto en el mapa.*/
 const PIN_BODY = 'M20 10.4c0 5.6-8 11.6-8 11.6s-8-6-8-11.6a8 8 0 0 1 16 0Z';
-/* lucide · route — el destino es un recorrido, no un punto. */
+/*lucide · route — el destino es un recorrido.*/
 const ROUTE_LINE = 'M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15';
 const NS = 'http://www.w3.org/2000/svg';
 
-/* Con menos caracteres, cualquier calle coincide y estorban al teclear. */
+/*Con menos caracteres, cualquier calle coincide y estorban al teclear.*/
 const STREET_MIN_TERM = 3;
 
-/* Coincidencia aproximada: solo actúa cuando la búsqueda literal no devuelve
-   nada, y nunca sobre números. Ver docs/02-datos.md. */
+/*Coincidencia aproximada: solo actúa cuando la búsqueda literal no devuelve nada. Ver docs/02-datos.md.*/
 const FUZZY_MIN_TERM = 3;    // por debajo, cualquier nombre se parece al término
 const FUZZY_MAX_SCORE = 0.6; // 0 es idéntico; por encima ya no es una errata
 const FUZZY_MAX_RESULTS = 8;
@@ -357,7 +386,7 @@ const FUZZY = {
 };
 
 const fuse = new Fuse(LOCATIONS, Object.assign({
-  keys: ['nameSearch']    // solo el nombre: los números tienen su propia rama
+  keys: ['nameSearch']    // solo nombres; las parcelas se resuelven literalmente
 }, FUZZY));
 
 const fuseStreets = STREETS.length
@@ -370,8 +399,9 @@ const empty = document.getElementById('empty');
 const meta = document.getElementById('meta');
 const body = document.body;
 let expanded = null;
+let activeGroup = null;
 
-/** Minúsculas, sin tildes, comillas normalizadas, espacios colapsados. */
+/**Minúsculas, sin tildes, comillas normalizadas, espacios colapsados.*/
 function normalize(s){
   return s.toLowerCase()
     .replace(/[‘’]/g, "'")
@@ -379,8 +409,7 @@ function normalize(s){
     .replace(/\s+/g, ' ').trim();
 }
 
-/** Solo letras y dígitos. Ver flatten() en scripts/build.py: es lo que hace
-    que «A01» encuentre «A-01» aunque falte el guion. */
+/**Solo letras y dígitos. Ver flatten() en scripts/build.py: es lo que hace que «A01» encuentre «A-01» aunque falte el guion.*/
 function flatten(s){
   return normalize(s).replace(/[^a-z0-9]/g, '');
 }
@@ -395,33 +424,17 @@ function streetUrl(st){
 }
 
 /**
- * Filtra y ordena. Devuelve { streets, exact, approx }: cada grupo viaja
- * aparte porque en pantalla se presentan de forma distinta.
- *
- * Consulta numérica: número exacto, número que empieza por el término, y
- *   nombre que lo contiene. Nunca subcadena ni aproximación sobre el número
- *   —escribir 39 no puede devolver la 139— y un número inexistente devuelve
- *   lista vacía. Llevar la unidad a la ubicación equivocada es el único fallo
- *   grave que esta aplicación puede cometer.
- * Consulta de texto: empieza por, contiene, y contiene una vez aplanado.
- *   Solo si nada de eso devuelve resultados se ofrecen aproximaciones.
- */
+* Filtra y ordena.
+* Devuelve { streets, exact, approx }: cada grupo viaja aparte porque en pantalla se presentan de forma distinta.
+* Llevar la unidad a la ubicación equivocada es el fallo mas grave que esta aplicación puede cometer.
+* Consulta literal: empieza por, contiene, y contiene una vez aplanado.
+* Solo si nada de eso devuelve resultados se ofrecen aproximaciones.
+*/
 function search(raw){
   const term = normalize(raw);
   if (!term) return { streets: [], exact: LOCATIONS, approx: [] };
 
   const exact = [], prefix = [], contains = [];
-
-  if (/^\d+$/.test(term)){
-    const num = parseInt(term, 10);
-    for (const loc of LOCATIONS){
-      if (loc.numbers.includes(num)) exact.push(loc);
-      else if (loc.numbers.some(n => String(n).startsWith(term))) prefix.push(loc);
-      else if (loc.nameSearch.includes(term)) contains.push(loc);
-    }
-    // Una consulta numérica nunca trae calles ni aproximaciones.
-    return { streets: [], exact: exact.concat(prefix, contains), approx: [] };
-  }
 
   const flat = flatten(raw);
 
@@ -429,8 +442,7 @@ function search(raw){
     ? []
     : STREETS.filter(st => st.flat.includes(flat));
 
-  // Tercer nivel literal: sin espacios ni puntuación, para que un separador
-  // de más o de menos no deje la pantalla vacía.
+  // Tercer nivel literal: sin espacios ni puntuación, para que un separador de más o de menos no deje la pantalla vacía.
   const loose = [];
   for (const loc of LOCATIONS){
     const i = loc.search.indexOf(term);
@@ -460,7 +472,7 @@ function search(raw){
 
 const unit = n => n + (n === 1 ? ' ubicación' : ' ubicaciones');
 
-/** Icono SVG de trazo a partir de una o varias rutas. */
+/**Icono SVG de trazo a partir de una o varias rutas.*/
 function icon(cls, ...paths){
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('class', cls);
@@ -472,6 +484,72 @@ function icon(cls, ...paths){
     svg.append(path);
   }
   return svg;
+}
+
+function pinIcon(){
+  const svg = icon('ico', PIN_BODY);
+  const dot = document.createElementNS(NS, 'circle');
+  dot.setAttribute('cx', '12');
+  dot.setAttribute('cy', '10.2');
+  dot.setAttribute('r', '2.9');
+  svg.append(dot);
+  return svg;
+}
+
+function minimap(loc){
+  const figure = document.createElement('figure');
+  figure.className = 'minimap';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', loc.mapView.join(' '));
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', LABEL.minimap + loc.name + ', ' + loc.label);
+
+  const image = document.createElementNS(NS, 'image');
+  const [x, y, width, height] = MINIMAP.bounds;
+  image.setAttribute('x', x);
+  image.setAttribute('y', y);
+  image.setAttribute('width', width);
+  image.setAttribute('height', height);
+  image.setAttribute('href', MINIMAP.image);
+  svg.append(image);
+
+  // Las referencias salen del mismo catálogo que la lista, no de otra tabla GPS.
+  for (const reference of LOCATIONS){
+    if (!reference.marker || !reference.mapPoint) continue;
+    const [rx, ry] = reference.mapPoint;
+    const group = document.createElementNS(NS, 'g');
+    group.setAttribute('class', 'minimap-reference farola-' + reference.marker);
+    const dot = document.createElementNS(NS, 'circle');
+    dot.setAttribute('cx', rx);
+    dot.setAttribute('cy', ry);
+    dot.setAttribute('r', '1.2');
+    const label = document.createElementNS(NS, 'text');
+    const left = reference.marker === 'blue';
+    label.setAttribute('x', rx + (left ? -2.5 : 2.5));
+    label.setAttribute('y', ry + 1.5);
+    label.setAttribute('text-anchor', left ? 'end' : 'start');
+    label.textContent = reference.label;
+    group.append(dot, label);
+    svg.append(group);
+  }
+
+  // La punta, no el centro del icono, coincide con las coordenadas del destino.
+  const marker = document.createElementNS(NS, 'g');
+  marker.setAttribute('class', 'minimap-marker');
+  marker.setAttribute('transform', 'translate(' + loc.mapPoint.join(' ') + ') scale(.45) translate(-12 -22)');
+  const pin = document.createElementNS(NS, 'path');
+  pin.setAttribute('d', PIN_BODY);
+  const center = document.createElementNS(NS, 'circle');
+  center.setAttribute('cx', '12');
+  center.setAttribute('cy', '10.2');
+  center.setAttribute('r', '3.5');
+  marker.append(pin, center);
+  svg.append(marker);
+
+  const caption = document.createElement('figcaption');
+  caption.textContent = TEXT.minimap;
+  figure.append(svg, caption);
+  return figure;
 }
 
 function detail(loc){
@@ -508,6 +586,7 @@ function detail(loc){
   coordinates.textContent = loc.lat + ', ' + loc.lon;
   coordinates.setAttribute('aria-label', LABEL.copy + loc.name);
   panel.append(fields, coordinates);
+  if (loc.mapPoint) panel.append(minimap(loc));
   return panel;
 }
 
@@ -555,16 +634,9 @@ function row(loc){
   txt.className = 'txt';
   txt.append(nom);
 
-  const svg = icon('ico', PIN_BODY);
-  const dot = document.createElementNS(NS, 'circle');
-  dot.setAttribute('cx', '12');
-  dot.setAttribute('cy', '10.2');
-  dot.setAttribute('r', '2.9');
-  svg.append(dot);
-
   const pill = document.createElement('span');
   pill.className = 'pill';
-  pill.append(svg);
+  pill.append(pinIcon());
 
   // Único elemento pulsable de la fila.
   const a = document.createElement('a');
@@ -580,12 +652,54 @@ function row(loc){
   return li;
 }
 
+function groupRow(group){
+  const li = document.createElement('li');
+  li.className = 'row';
+
+  const num = document.createElement('span');
+  num.className = 'num';
+  num.textContent = group.code;
+
+  const button = document.createElement('button');
+  button.className = 'nom group-toggle';
+  button.type = 'button';
+  button.dataset.group = group.code;
+  button.textContent = group.name;
+  button.setAttribute('aria-label', LABEL.openGroup + group.name);
+
+  const txt = document.createElement('span');
+  txt.className = 'txt';
+  txt.append(button);
+
+  const pill = document.createElement('span');
+  pill.className = 'pill';
+  pill.append(pinIcon());
+
+  const disabledMap = document.createElement('span');
+  disabledMap.className = 'go group-map-disabled';
+  disabledMap.setAttribute('aria-hidden', 'true');
+  disabledMap.append(pill);
+
+  li.append(num, txt, disabledMap);
+  return li;
+}
+
+function backRow(){
+  const li = document.createElement('li');
+  li.className = 'row back-row';
+  const button = document.createElement('button');
+  button.className = 'group-back';
+  button.type = 'button';
+  button.textContent = '...';
+  button.setAttribute('aria-label', LABEL.backToGroups);
+  li.append(button);
+  return li;
+}
+
 /**
- * Fila de calle. Va arriba, sin identificador en la columna de la izquierda
- * —una calle no tiene número— y con el nombre en el color de acento, para que
- * no se confunda con una ubicación sin número. El icono del botón es un
- * recorrido y no un punto, porque lo que abre es un trazado.
- */
+*Fila de calle. Va arriba, sin identificador en la columna de la izquierda —una calle no tiene número— y con el nombre en el color de acento, para que no se confunda con una ubicación sin número.
+El icono del botón es un recorrido y no un punto, porque lo que abre es un trazado.
+*/
 function streetRow(st){
   const li = document.createElement('li');
   li.className = 'row route';
@@ -650,18 +764,38 @@ function render(result){
       : unit(result.exact.length + result.streets.length);
 }
 
+function renderGroups(){
+  const frag = document.createDocumentFragment();
+  for (const group of GROUPS) frag.append(groupRow(group));
+  list.replaceChildren(frag);
+  empty.hidden = GROUPS.length > 0;
+  meta.textContent = GROUPS.length + (GROUPS.length === 1 ? ' grupo' : ' grupos');
+}
+
+function renderGroup(groupCode){
+  const locations = LOCATIONS.filter(loc => loc.menuCode === groupCode);
+  const frag = document.createDocumentFragment();
+  for (const loc of locations) frag.append(row(loc));
+  frag.append(backRow());
+  list.replaceChildren(frag);
+  empty.hidden = true;
+  meta.textContent = unit(locations.length);
+}
+
 function update(){
   closeDetail({restoreFocus:false});
   const v = q.value;
   body.classList.toggle('has-query', v.length > 0);
+  if (!normalize(v)){
+    if (activeGroup) renderGroup(activeGroup);
+    else renderGroups();
+    return;
+  }
+  activeGroup = null;
   render(search(v));
 }
 
-/**
- * Copia al portapapeles. El API moderno solo existe en contextos seguros
- * (https o localhost); si la app se abre desde un archivo o por http, se
- * recurre al método antiguo, que sigue funcionando en todos los navegadores.
- */
+/**Copia al portapapeles. El API moderno solo existe en contextos seguros (https o localhost); si la app se abre desde un archivo o por http, se recurre al método antiguo, que sigue funcionando en todos los navegadores.*/
 function copyText(text){
   if (navigator.clipboard && window.isSecureContext){
     return navigator.clipboard.writeText(text);
@@ -679,9 +813,22 @@ function copyText(text){
   });
 }
 
-/* La confirmación se anuncia por la región de estado, sin cambiar el texto
-   visible de las coordenadas. */
+/**La confirmación se anuncia por la región de estado, sin cambiar el texto visible de las coordenadas. */
 list.addEventListener('click', e => {
+  const group = e.target.closest('.group-toggle');
+  if (group){
+    closeDetail({restoreFocus:false});
+    activeGroup = group.dataset.group;
+    renderGroup(activeGroup);
+    return;
+  }
+  const back = e.target.closest('.group-back');
+  if (back){
+    closeDetail({restoreFocus:false});
+    activeGroup = null;
+    renderGroups();
+    return;
+  }
   const toggle = e.target.closest('.detail-toggle');
   if (toggle){
     const li = toggle.closest('.row');

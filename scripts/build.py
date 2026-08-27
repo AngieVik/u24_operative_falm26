@@ -19,6 +19,7 @@ import shutil
 import statistics
 import sys
 import unicodedata
+import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
 
@@ -37,6 +38,7 @@ MANIFEST = SRC / "manifest.webmanifest"
 SERVICE_WORKER = SRC / "sw.js"
 FONTS = SRC / "fonts"
 LOGO = SRC / "logo.svg"
+MINIMAP = SRC / "minimap.svg"
 CHARSET = FONTS / "charset.txt"
 VENDOR = SRC / "vendor" / "fuse.basic.min.js"
 ICONS = ROOT / "icons"
@@ -68,15 +70,23 @@ OUTLIER_MIN_M = 500
 # Longitud de calle habitual, en metros. Solo para avisar.
 STREET_LENGTH_USUAL = (20, 5000)
 
-COORDS_RE = re.compile(r"^(-?\d+\.\d+),(-?\d+\.\d+)$")
-NUMERIC_LABEL_RE = re.compile(r"^\d+(-\d+)*$")
+COORDS_RE = re.compile(r"^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$")
 FAROLA_LABEL_RE = re.compile(r"^[A-D]\d+$")
 SECTION_RE = re.compile(r"^#{1,6}\s+(.*)$")
+TABLE_FIRST_COLUMNS = {"parcel", "street"}
 
-BUSINESS_HEADERS = ("parcel", "trade_name", "legal_name", "activity_type", "coords")
-GENERAL_HEADERS = ("parcel", "name", "type", "coords")
+BUSINESS_HEADERS = (
+    "parcel",
+    "trade_name",
+    "legal_name",
+    "group",
+    "activity_type",
+    "coords",
+)
+GENERAL_HEADERS = ("parcel", "name", "group", "coords")
 STREET_HEADERS = ("street", "start", "end", "waypoints")
-SUPPORTED_HEADERS = {BUSINESS_HEADERS, GENERAL_HEADERS, STREET_HEADERS}
+LOCATION_HEADERS = {BUSINESS_HEADERS, GENERAL_HEADERS}
+SUPPORTED_HEADERS = LOCATION_HEADERS | {STREET_HEADERS}
 
 PUBLIC_LEGAL_RE = re.compile(
     r"(?:\bgrupo\b|\basoc\.?\b|\basociaci[oó]n\b|\bpartido\b|\bsindical\b|"
@@ -93,13 +103,28 @@ FAROLA_COLORS = {
     "D": "yellow",
 }
 
+# Menú operativo. `group` ya viene consolidado en cada fila de data.md; este
+# catálogo solo fija el código corto y el rótulo corregido que se muestran.
+NAVIGATION_GROUPS = (
+    ("A", "Atracciones", "atracciones"),
+    ("H", "Habilidad", "habilidad"),
+    ("C", "Casetas", "casetas"),
+    ("RT", "Restauración", "restauracion"),
+    ("B", "Bebidas espirituosas", "bebidas espirituosas"),
+    ("R", "Repostería", "reposteria"),
+    ("PI", "Puntos de interés", "puntos de interes"),
+    ("AP", "Aseos públicos", "aseos publicos"),
+    ("Acc", "Acceso", "acceso"),
+    ("F", "Puntos de referencia", "puntos de referencia"),
+)
+NAVIGATION_BY_SOURCE = {
+    source: (code, name)
+    for code, name, source in NAVIGATION_GROUPS
+}
+
 # Bloque de textos visibles de la plantilla y cadenas que contiene.
 UI_TEXT_RE = re.compile(r"const TEXT = \{(.*?)\n\};", re.S)
 UI_STRING_RE = re.compile(r"'((?:[^'\\]|\\.)*)'")
-
-# Erratas del origen. data.md no se modifica: se corrigen aqui.
-STREET_FIXES = {}
-
 
 def fail(msg):
     sys.exit(f"ERROR: {msg}")
@@ -134,40 +159,52 @@ def haversine(a, b):
 # ── Lectura de data.md ────────────────────────────────────────────────────────
 
 
-def read_sections():
-    """Devuelve titulo y filas de cada tabla, agrupados por seccion."""
-    secciones, actual = {}, None
+def read_tables():
+    """Lee todas las tablas completas, aunque compartan título Markdown."""
+    tables = []
+    title = ""
+    current = None
 
     for lineno, raw in enumerate(DATA.read_text(encoding="utf-8").splitlines(), 1):
         line = raw.strip()
 
-        titulo = SECTION_RE.match(line)
-        if titulo:
-            actual = normalize(titulo.group(1))
-            secciones.setdefault(
-                actual, {"title": titulo.group(1).strip(), "rows": []}
-            )
+        heading = SECTION_RE.match(line)
+        if heading:
+            title = heading.group(1).strip()
+            current = None
             continue
 
         if not line.startswith("|"):
             continue
 
         cells = [c.strip() for c in line.strip("|").split("|")]
-        if cells[0].startswith("---") or not any(cells):
+        if not any(cells) or all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells):
             continue
-        if actual is None:
-            fail(f"data.md linea {lineno}: hay una tabla antes del primer titulo")
+        if all(not cell or cell == "-" for cell in cells):
+            continue
 
-        secciones[actual]["rows"].append((lineno, cells))
+        first = normalize(cells[0])
+        if first in TABLE_FIRST_COLUMNS:
+            headers = tuple(normalize(cell) for cell in cells)
+            if headers not in SUPPORTED_HEADERS:
+                fail(
+                    f"data.md linea {lineno}, seccion {title!r}: "
+                    f"encabezado no admitido {headers!r}"
+                )
+            current = {
+                "title": title,
+                "line": lineno,
+                "headers": headers,
+                "rows": [],
+            }
+            tables.append(current)
+            continue
 
-    return secciones
+        if current is None:
+            fail(f"data.md linea {lineno}: hay una fila antes de su encabezado")
+        current["rows"].append((lineno, cells))
 
-
-def drop_header(rows, first_column):
-    """Descarta la fila de cabecera, reconocida por su primera celda."""
-    if rows and normalize(rows[0][1][0]) == first_column:
-        return rows[1:]
-    return rows
+    return tables
 
 
 def farola_marker(label, name):
@@ -195,50 +232,69 @@ def choose_public_name(trade_name, legal_name, activity_type, fallback, parcel):
 
 def group_search_terms(group, activity_type):
     terms = [group, activity_type]
-    if normalize(group) == "casetas":
+    normalized_group = normalize(group)
+    if normalized_group == "casetas":
         terms.extend(("caseta", "casetas", f"caseta {activity_type}"))
+    elif normalized_group.startswith("casetas "):
+        terms.extend(("caseta", "casetas", "caseta " + group.split(" ", 1)[1]))
     return " ".join(term for term in terms if term)
 
 
-def table_headers(section, key):
-    rows = section["rows"]
-    if not rows:
-        return (), []
-    lineno, cells = rows[0]
-    headers = tuple(normalize(cell) for cell in cells)
-    if headers not in SUPPORTED_HEADERS:
-        fail(
-            f"data.md linea {lineno}, seccion {section['title']!r}: "
-            f"encabezado no admitido {headers!r}"
-        )
-    return headers, rows[1:]
+def navigation_group(group):
+    """Código y nombre del menú; conserva grupos sintéticos en tests aislados."""
+    return NAVIGATION_BY_SOURCE.get(normalize(group), (group, group))
 
 
-def build_locations(sections):
+def check_navigation_groups(locations):
+    """El dataset real no puede publicar grupos fuera del menú operativo."""
+    unknown = sorted(
+        {
+            location["group"]
+            for location in locations
+            if normalize(location["group"]) not in NAVIGATION_BY_SOURCE
+        }
+    )
+    if unknown:
+        fail("grupos sin código de menú: " + ", ".join(unknown))
+
+
+def street_rows(tables):
+    return [
+        row
+        for table in tables
+        if table["headers"] == STREET_HEADERS
+        for row in table["rows"]
+    ]
+
+
+def build_locations(tables):
     locations = []
-    for key, section in sections.items():
-        headers, rows = table_headers(section, key)
-        if not headers or headers == STREET_HEADERS:
+    for table in tables:
+        headers = table["headers"]
+        if headers == STREET_HEADERS:
             continue
 
-        group = section["title"]
-        for lineno, cells in rows:
+        for lineno, cells in table["rows"]:
             if len(cells) != len(headers):
                 fail(
-                    f"data.md linea {lineno}, seccion {group!r}: se esperaban "
+                    f"data.md linea {lineno}, seccion {table['title']!r}: se esperaban "
                     f"{len(headers)} columnas, hay {len(cells)}"
                 )
 
             values = dict(zip(headers, cells))
             label = values["parcel"]
+            group = values["group"]
             coords = values["coords"]
             if not label:
-                fail(f"data.md linea {lineno}, seccion {group!r}: parcela vacia")
+                fail(f"data.md linea {lineno}: parcela vacia")
+            if not group:
+                fail(f"data.md linea {lineno}, parcela {label!r}: grupo vacio")
 
             match = COORDS_RE.match(coords)
             if not match:
                 fail(f"data.md linea {lineno}: coordenadas invalidas {coords!r}")
             lat, lon = match.group(1), match.group(2)
+            menu_code, menu_name = navigation_group(group)
 
             if headers == BUSINESS_HEADERS:
                 trade_name = values["trade_name"]
@@ -248,8 +304,14 @@ def build_locations(sections):
             else:
                 trade_name = ""
                 legal_name = ""
-                activity_type = values["type"]
+                activity_type = group
                 fallback = values["name"]
+                if (
+                    normalize(group) == "puntos de referencia"
+                    and normalize(fallback) == "farola"
+                ):
+                    activity_type = fallback
+                    fallback = f"Farola {label}"
 
             name = choose_public_name(
                 trade_name, legal_name, activity_type, fallback, label
@@ -260,11 +322,6 @@ def build_locations(sections):
             public_legal_name = "" if personal_legal_name else legal_name
             street = ""
 
-            numbers = (
-                [int(n) for n in label.split("-")]
-                if NUMERIC_LABEL_RE.match(label)
-                else []
-            )
             searchable = " ".join(
                 value
                 for value in (
@@ -273,6 +330,8 @@ def build_locations(sections):
                     trade_name,
                     public_legal_name,
                     group_search_terms(group, activity_type),
+                    menu_code,
+                    menu_name,
                     street,
                 )
                 if value
@@ -282,11 +341,12 @@ def build_locations(sections):
                 {
                     "id": f"loc-{len(locations):03d}",
                     "label": label,
-                    "display": compact_label(label, numbers),
+                    "display": compact_label(label),
                     "marker": farola_marker(label, name),
-                    "numbers": numbers,
                     "name": name,
                     "group": group,
+                    "menuCode": menu_code,
+                    "menuName": menu_name,
                     "tradeName": trade_name,
                     "legalName": legal_name,
                     "activityType": activity_type,
@@ -302,31 +362,15 @@ def build_locations(sections):
     return locations
 
 
-def compact_label(label, numbers):
-    """Etiqueta abreviada para la columna de identificador, de ancho fijo.
-
-    Las parcelas alfanumericas agrupadas por comas muestran solo la primera;
-    la etiqueta completa se conserva aparte para la busqueda.
-
-    A partir de tres numeros se abrevia como intervalo (180-181-…-186 ->
-    180–186), y solo si son consecutivos: en caso contrario se muestra la
-    etiqueta completa en lugar de mentir sobre los numeros que abarca.
-    """
+def compact_label(label):
+    """Muestra la primera parcela y conserva la etiqueta completa para buscar."""
     if "," in label:
         return label.split(",", 1)[0].strip()
-    if len(numbers) < 3:
-        return label
-    if numbers != list(range(numbers[0], numbers[0] + len(numbers))):
-        return label
-    return f"{numbers[0]}–{numbers[-1]}"
+    return label
 
 
-def build_streets(rows, locations, centro):
+def build_streets(rows, centro):
     """Calles con sus dos extremos. La seccion puede estar vacia."""
-    conocidas = {}
-    for loc in locations:
-        conocidas[loc["street"]] = conocidas.get(loc["street"], 0) + 1
-
     streets, incompletas, avisos, vistas = [], [], [], set()
 
     for lineno, cells in rows:
@@ -336,11 +380,6 @@ def build_streets(rows, locations, centro):
         name, start, end = cells[0], cells[1], cells[2]
         waypoints = cells[3] if len(cells) == 4 else ""
 
-        if name not in conocidas:
-            fail(
-                f"data.md linea {lineno}: la calle {name!r} no aparece en las ubicaciones.\n"
-                "       El nombre debe coincidir exactamente."
-            )
         if name in vistas:
             fail(f"data.md linea {lineno}: la calle {name!r} esta repetida")
         vistas.add(name)
@@ -373,7 +412,7 @@ def build_streets(rows, locations, centro):
                 "start": f"{lat1},{lon1}",
                 "end": f"{lat2},{lon2}",
                 "waypoints": puntos,
-                "count": conocidas[name],
+                "count": 0,
                 "length": round(largo),
             }
         )
@@ -394,18 +433,10 @@ def parse_point(value, donde, centro):
 # ── Validaciones ──────────────────────────────────────────────────────────────
 
 
-def check_unique(locations):
+def check_unique_coordinates(locations):
     coords = {(loc["lat"], loc["lon"]) for loc in locations}
     if len(coords) != len(locations):
         fail("hay coordenadas duplicadas")
-
-    seen = {}
-    for loc in locations:
-        for n in loc["numbers"]:
-            if n in seen:
-                fail(f"el numero {n} aparece en {seen[n]!r} y en {loc['label']!r}")
-            seen[n] = loc["label"]
-    return seen
 
 
 def check_coherence(locations):
@@ -496,6 +527,78 @@ def check_charset(locations, streets, template):
 
 
 # ── Ensamblado ────────────────────────────────────────────────────────────────
+
+
+def project_minimap_point(lat, lon, calibration):
+    """Pasa GPS a unidades del SVG; nunca modifica las coordenadas operativas."""
+    origin_lat, origin_lon = calibration["origin_lat_lon"]
+    lat_scale, lon_scale = calibration["metres_per_degree"]
+    east = (float(lon) - origin_lon) * lon_scale
+    north = (float(lat) - origin_lat) * lat_scale
+    return [
+        round(a * east + b * north + c, 3)
+        for a, b, c in calibration["svg_units_per_local_metre"]
+    ]
+
+
+def minimap_viewbox(point, bounds):
+    """Encuadre amplio con margen para el pin completo en los bordes del papel."""
+    left, top, full_width, full_height = bounds
+    width, height = min(150, full_width), min(120, full_height)
+    padding = 12
+    x = max(left - padding, min(point[0] - width / 2, left + full_width + padding - width))
+    y = max(top - padding, min(point[1] - height / 2, top + full_height + padding - height))
+    return [round(x, 3), round(y, 3), width, height]
+
+
+def build_minimap(locations):
+    """Un solo plano empotrado; posiciones y farolas derivadas de data.md."""
+    if not MINIMAP.exists():
+        fail(f"falta el plano {MINIMAP}")
+    try:
+        root = ET.parse(MINIMAP).getroot()
+        metadata = root.find(".//*[@id='u24-georeference']")
+        if metadata is None:
+            raise ValueError("falta la calibración u24-georeference")
+        calibration = json.loads(metadata.text)
+        origin_lat, origin_lon = calibration["origin_lat_lon"]
+        lat_scale, lon_scale = calibration["metres_per_degree"]
+        (a, b, c), (d, e, f) = calibration["svg_units_per_local_metre"]
+        bounds = [float(value) for value in root.attrib["viewBox"].split()]
+        left, top, width, height = bounds
+        numbers = [origin_lat, origin_lon, lat_scale, lon_scale, a, b, c, d, e, f, *bounds]
+        if not all(math.isfinite(value) for value in numbers):
+            raise ValueError("valores no finitos")
+        if min(width, height, lat_scale, lon_scale) <= 0 or a * e == b * d:
+            raise ValueError("dimensiones o transformación degeneradas")
+    except (ET.ParseError, ValueError, KeyError, TypeError) as error:
+        fail(f"plano o calibración inválidos en {MINIMAP.name}: {error}")
+
+    for loc in locations:
+        point = project_minimap_point(loc["lat"], loc["lon"], calibration)
+        inside = left <= point[0] <= left + width and top <= point[1] <= top + height
+        loc["mapPoint"] = point if inside else None
+        loc["mapView"] = minimap_viewbox(point, bounds) if inside else None
+        if not inside:
+            print(f"    AVISO  {loc['label']}: fuera del plano, sin minimapa; conserva su enlace GPS")
+
+    # Retira información del editor, no geometría. El SVG sigue aislado como imagen
+    # para que sus IDs y estilos no interfieran con la interfaz ni con el emblema.
+    svg_namespace = "http://www.w3.org/2000/svg"
+    ET.register_namespace("", svg_namespace)
+    ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
+    for parent in root.iter():
+        for child in list(parent):
+            if not child.tag.startswith("{" + svg_namespace + "}") or child.tag == "{" + svg_namespace + "}metadata":
+                parent.remove(child)
+        for key in list(parent.attrib):
+            if key.startswith("{") and not key.startswith(("{http://www.w3.org/1999/xlink}", "{http://www.w3.org/XML/1998/namespace}")):
+                del parent.attrib[key]
+        if parent.text and not parent.text.strip():
+            parent.text = None
+        parent.tail = None
+    image = base64.b64encode(ET.tostring(root, encoding="utf-8")).decode("ascii")
+    return {"image": "data:image/svg+xml;base64," + image, "bounds": bounds}
 
 
 def read_logo():
@@ -595,27 +698,22 @@ def main():
             fail(f"no se encuentra {path}")
 
     template = TEMPLATE.read_text(encoding="utf-8")
-    secciones = read_sections()
+    tables = read_tables()
 
-    locations = build_locations(secciones)
+    locations = build_locations(tables)
     if not locations:
         fail("data.md no tiene ninguna fila de ubicacion")
-    numbers = check_unique(locations)
+    check_navigation_groups(locations)
+    check_unique_coordinates(locations)
     centro, mediana, raros = check_coherence(locations)
 
-    calles = secciones.get("calles", {"title": "Calles", "rows": []})
-    _, filas_calles = table_headers(calles, "calles")
-    streets, sin_coords, avisos = build_streets(filas_calles, locations, centro)
-
-    filas_ubicaciones = []
-    for key, section in secciones.items():
-        headers, rows = table_headers(section, key)
-        if headers in (BUSINESS_HEADERS, GENERAL_HEADERS):
-            filas_ubicaciones.extend(rows)
+    filas_calles = street_rows(tables)
+    streets, sin_coords, avisos = build_streets(filas_calles, centro)
 
     n_chars = check_charset(locations, streets, template)
+    minimap = build_minimap(locations)
 
-    markers = ["__LOCATIONS__", "__STREETS__", "__OPERATIVO__", "__LOGO__", "__FUSE__"]
+    markers = ["__LOCATIONS__", "__STREETS__", "__MINIMAP__", "__OPERATIVO__", "__LOGO__", "__FUSE__"]
     markers += [f"__FONT_{w}__" for w in FONT_WEIGHTS]
     for marker in markers:
         if marker not in template:
@@ -629,6 +727,7 @@ def main():
         "__STREETS__", json.dumps(streets, ensure_ascii=False, separators=(",", ":"))
     )
     html = html.replace("__OPERATIVO__", OPERATIVO)
+    html = html.replace("__MINIMAP__", json.dumps(minimap, separators=(",", ":")))
     html = html.replace("__LOGO__", read_logo())
     html = html.replace("__FUSE__", vendor)
     for weight, b64 in read_fonts().items():
@@ -641,37 +740,36 @@ def main():
     assemble_dist(html)
     n_refs = check_dist_references()
 
-    report(locations, streets, numbers, centro, mediana, raros, avisos, sin_coords,
-           filas_ubicaciones, vendor, n_chars, n_refs)
+    report(
+        locations,
+        streets,
+        centro,
+        mediana,
+        raros,
+        avisos,
+        sin_coords,
+        vendor,
+        n_chars,
+        n_refs,
+    )
 
 
-def report(locations, streets, numbers, centro, mediana, raros, avisos, sin_coords,
-           filas, vendor, n_chars, n_refs):
+def report(locations, streets, centro, mediana, raros, avisos, sin_coords,
+           vendor, n_chars, n_refs):
     calles = sorted({loc["street"] for loc in locations if loc["street"]})
-    sin_numero = [loc["label"] for loc in locations if not loc["numbers"]]
     total = sum(f.stat().st_size for f in DIST.rglob("*") if f.is_file())
     n_files = sum(1 for f in DIST.rglob("*") if f.is_file())
     digest = hashlib.sha256(DATA.read_bytes()).hexdigest()[:8]
 
     print(f"OK  {len(locations)} ubicaciones -> {OUTPUT.relative_to(ROOT)}")
     print(f"    {OPERATIVO} · {date.today():%d.%m.%y} · data.md {digest}")
-    print(f"    {len(numbers)} numeros, {len(calles)} calles, {len(sin_numero)} sin numero")
+    print(f"    {len(calles)} calles configuradas")
     print(f"    centro {centro[0]:.6f},{centro[1]:.6f} · mediana al centro {mediana:.0f} m")
 
     if streets:
         detalle = ", ".join(f"{s['name']} ({s['length']} m)" for s in streets)
         print(f"    trazado en {len(streets)}: {detalle}")
 
-    # Una correccion de errata que ya no corresponde a ninguna fila es
-    # configuracion muerta: no rompe nada, pero engana al que la lea.
-    crudas = {
-        cells[2]
-        for _, cells in filas
-        if len(cells) == 4 and cells[2]
-    }
-    for errata in STREET_FIXES:
-        if errata not in crudas:
-            print(f"    AVISO  STREET_FIXES corrige {errata!r}, que ya no esta en data.md")
     if sin_coords:
         print(f"    AVISO  calles sin coordenadas, no se publican: {', '.join(sin_coords)}")
     for aviso in avisos:
