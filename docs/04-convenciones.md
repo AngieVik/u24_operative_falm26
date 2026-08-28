@@ -33,7 +33,9 @@ docs/                    Producto, contratos y mantenimiento
 
 - Mobile-first, tema oscuro y una columna máxima de 600 px.
 - La cabecera queda fuera del área desplazable; solo `main` desplaza la lista.
-- Con el buscador vacío aparecen los diez grupos en el orden del catálogo del build.
+- Con el buscador vacío aparecen los diez grupos de ubicaciones, seguidos de `CL · Calles`
+  cuando hay trazados. La flecha de la cabecera vuelve desde un grupo o búsqueda al menú,
+  borra la consulta, cierra el detalle y reinicia el desplazamiento de la lista.
 - La fila de grupo mantiene las mismas columnas que una ubicación y usa un pin gris.
 - La parcela visible ocupa una columna fija; las parcelas agrupadas muestran la primera.
 - El nombre abre el detalle y el icono derecho abre Google Maps.
@@ -42,6 +44,9 @@ docs/                    Producto, contratos y mantenimiento
 - El detalle muestra únicamente campos con valor e incluye las coordenadas copiables.
 - Debajo aparece el minimapa estático sobre fondo claro, con un pin de destino y las
   farolas. No captura gestos ni añade controles; Google Maps conserva su botón separado.
+- Las calles no son ubicaciones: su detalle solo muestra el plano con la línea resaltada,
+  sin pin de destino, coordenadas ni enlace. La columna derecha es decorativa y gris.
+  Sus trazados viven exclusivamente en `data.md`, en unidades SVG, sin modificar el plano.
 - Las farolas conservan su barra semántica lateral.
 
 Las medidas y estilos vigentes están en `src/template.html`; la documentación no debe

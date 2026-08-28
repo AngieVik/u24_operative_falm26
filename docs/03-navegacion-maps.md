@@ -19,31 +19,19 @@ No se añade nada más. En particular **no se usa `query_place_id`**, que haría
 
 Se abre un mapa centrado en el punto, con el marcador sobre las coordenadas exactas y la tarjeta inferior de Google Maps, desde la que se accede a «Cómo llegar» e «Iniciar».
 
-## Trazado de una calle
+## Calles: solo previsualización local
 
-Maps URLs **no permite dibujar**: no hay parámetro para líneas, trazados ni polilíneas.
-Los únicos admitidos son `query` para buscar y `origin`, `destination`, `waypoints`, `travelmode` y `avoid` para indicaciones.
+Las calles no abren Google Maps ni solicitan rutas a pie. Se consultan desde el grupo
+Calles o escribiendo su nombre. Pulsar el nombre despliega el plano orientativo con
+una línea SVG resaltada y las farolas como referencias, sin pin de destino.
 
-El recorrido de una calle se consigue pidiendo una ruta entre sus dos extremos: el camino que Google dibuja **es** la calle.
+La columna derecha es un icono de trazado gris decorativo: no es un enlace. El detalle
+no contiene coordenadas copiables. Los nombres policiales Galán de Noche, Acebo y
+Rotonda del Acebo se resuelven localmente con el mismo catálogo de trazados.
 
-```
-https://www.google.com/maps/dir/?api=1&travelmode=walking&origin={LAT1},{LON1}&destination={LAT2},{LON2}
-```
-
-Con puntos intermedios, cuando hacen falta: `&waypoints={LAT},{LON}|{LAT},{LON}`.
-
-| Parámetro    | Valor     | Motivo                                                                                                                                                                               |
-| ------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `travelmode` | `walking` | **A pie, no en coche.** El recinto es peatonal: en coche Google daría un rodeo por el exterior, o no encontraría ruta. A pie el trazado sigue la calle y no respeta sentidos únicos. |
-| `waypoints`  | Opcional  | Fuerza el trazado por donde debe ir si Google elige otro camino entre los extremos.                                                                                                  |
-| `dir_action` | No se usa | Lanzaría la navegación paso a paso; aquí solo se quiere ver el trazado.                                                                                                              |
-
-Diferencias con el enlace de una ubicación: abre la pantalla de indicaciones y no la ficha de lugar, y dibuja un recorrido entre dos puntos, no un resaltado de la calle.
-Depende además de que Google conozca el vial.
-
-En la aplicación, una calle configurada aparece **escribiendo su nombre** en el buscador,
-como primera fila. No aparece con el campo vacío. La tabla de calles de `data.md` está
-actualmente vacía, por lo que no se publica ningún recorrido.
+Esta distinción evita que una línea dibujada para orientación se presente como una
+ubicación GPS o como un itinerario calculado por Google. Las fichas de negocios y
+farolas conservan su botón de Maps con sus coordenadas originales.
 
 ## Codificación
 
@@ -76,7 +64,7 @@ Sobre dispositivo real, no solo en emulador:
 1. Abrir tres ubicaciones distintas en Android con Google Maps instalado y confirmar que el marcador cae sobre el punto correcto, contrastando con `data.md`.
 2. Repetir en iPhone, con y sin la aplicación de Google Maps instalada.
 3. Comprobar el caso de longitud negativa; un fallo de codificación se manifestaría en todas las ubicaciones a la vez.
-4. Abrir una calle y comprobar que el trazado sigue la calle y no un rodeo por fuera.
+4. Abrir una calle y comprobar que solo se ve el minimapa local con su línea, sin enlace externo.
 5. Desde una ficha, pulsar «Cómo llegar» y ver en qué modo de transporte queda la ruta.
 
 Estas comprobaciones no se dan por superadas si no se han ejecutado.

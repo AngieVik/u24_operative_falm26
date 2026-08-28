@@ -3,6 +3,7 @@ import re
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
+from html.parser import HTMLParser
 from pathlib import Path
 from unittest.mock import patch
 
@@ -192,8 +193,8 @@ class LocationDisplayTests(unittest.TestCase):
 
 ## Calles
 
-| street | start | end | waypoints |
-| --- | --- | --- | --- |
+| street | map_path |
+| --- | --- |
 """
         with tempfile.TemporaryDirectory() as directory:
             data = Path(directory) / "data.md"
@@ -209,28 +210,6 @@ class LocationDisplayTests(unittest.TestCase):
         locations = build.build_locations(tables)
         self.assertEqual([location["label"] for location in locations], ["A-01", "H-01", "D3"])
 
-    def test_street_routes_do_not_depend_on_a_removed_address_column(self):
-        rows = [
-            (
-                1,
-                [
-                    "Calle de prueba",
-                    "36.834500,-2.430500",
-                    "36.835000,-2.430500",
-                    "",
-                ],
-            )
-        ]
-
-        streets, incomplete, warnings = build.build_streets(
-            rows, (36.834750, -2.430500)
-        )
-
-        self.assertEqual([street["name"] for street in streets], ["Calle de prueba"])
-        self.assertEqual(streets[0]["count"], 0)
-        self.assertEqual(incomplete, [])
-        self.assertEqual(warnings, [])
-
     def test_navigation_group_mapping(self):
         expected = {
             "Atracciones": ("A", "Atracciones"),
@@ -242,6 +221,7 @@ class LocationDisplayTests(unittest.TestCase):
             "Puntos de Interes": ("PI", "Puntos de interés"),
             "Aseos Publicos": ("AP", "Aseos públicos"),
             "Acceso": ("Acc", "Acceso"),
+            "Accesos": ("Acc", "Acceso"),
             "Puntos de Referencia": ("F", "Puntos de referencia"),
         }
 
@@ -319,9 +299,8 @@ class LocationDisplayTests(unittest.TestCase):
     def test_location_dataset_uses_supported_charset(self):
         tables = build.read_tables()
         locations = build.build_locations(tables)
-        center, _, _ = build.check_coherence(locations)
         street_rows = build.street_rows(tables)
-        streets, _, _ = build.build_streets(street_rows, center)
+        streets = build.build_streets(street_rows, [0, 0, 210, 297])
 
         try:
             covered = build.check_charset(
@@ -492,7 +471,7 @@ class LocationDisplayTests(unittest.TestCase):
             [item["headers"] for item in tables],
             [build.BUSINESS_HEADERS, build.GENERAL_HEADERS, build.STREET_HEADERS],
         )
-        self.assertEqual(sum(len(item["rows"]) for item in tables), 232)
+        self.assertEqual(len(build.build_locations(tables)), 232)
 
     def test_known_private_and_company_rows_follow_public_name_rules(self):
         locations = {
@@ -624,18 +603,30 @@ class LocationDisplayTests(unittest.TestCase):
         self.assertIn("aria-controls", template)
         self.assertIn("prefers-reduced-motion:reduce", template)
 
-    def test_group_navigation_contract_is_present(self):
-        template = build.TEMPLATE.read_text(encoding="utf-8")
+    def test_back_control_is_an_accessible_header_button(self):
+        class HeaderParser(HTMLParser):
+            in_header = False
+            back = None
 
-        self.assertIn("const GROUPS =", template)
-        self.assertIn("let activeGroup = null;", template)
-        self.assertIn("function groupRow(group)", template)
-        self.assertIn("function backRow()", template)
-        self.assertIn("button.textContent = '...';", template)
-        self.assertIn("button.setAttribute('aria-label', LABEL.backToGroups);", template)
-        self.assertIn("if (!normalize(v))", template)
-        self.assertIn("renderGroups();", template)
-        self.assertIn("renderGroup(activeGroup);", template)
+            def handle_starttag(self, tag, attrs):
+                if tag == "header":
+                    self.in_header = True
+                attributes = dict(attrs)
+                if attributes.get("id") == "back":
+                    self.back = (tag, attributes, self.in_header)
+
+            def handle_endtag(self, tag):
+                if tag == "header":
+                    self.in_header = False
+
+        parser = HeaderParser()
+        parser.feed(build.TEMPLATE.read_text(encoding="utf-8"))
+        self.assertIsNotNone(parser.back)
+        tag, attrs, in_header = parser.back
+        self.assertEqual(tag, "button")
+        self.assertTrue(in_header)
+        self.assertEqual(attrs.get("type"), "button")
+        self.assertEqual(attrs.get("aria-label"), "Volver a los grupos")
 
     def test_operational_group_row_matches_location_geometry(self):
         template = build.TEMPLATE.read_text(encoding="utf-8")
@@ -708,6 +699,86 @@ class LocationDisplayTests(unittest.TestCase):
         self.assertNotEqual(old_match.group(1), new_match.group(1))
         self.assertNotIn("__APP_VERSION__", old_worker)
         self.assertNotIn("__APP_VERSION__", new_worker)
+
+
+class StreetTests(unittest.TestCase):
+    def test_paths_have_searchable_names_but_no_gps_destination(self):
+        streets = build.build_streets(
+            [(10, ["c/Galán de Noche", "M 20 30 L 100 30"])], [0, 0, 210, 297]
+        )
+        self.assertEqual(len(streets), 1)
+        street = streets[0]
+        self.assertIn("galan de noche", street["search"])
+        self.assertIn("galandenoche", street["flat"])
+        self.assertEqual(street["mapPath"], "M 20 30 L 100 30")
+        self.assertEqual(street["mapView"], [-12, -12, 150, 120])
+        for field in ("lat", "lon", "start", "end", "waypoints", "mapPoint"):
+            self.assertNotIn(field, street)
+
+    def test_long_street_fits_entire_view_with_context(self):
+        street = build.build_streets(
+            [(1, ["Paseo", "M 75 10 L 75 265"])], [0, 0, 210, 297]
+        )[0]
+        x, y, width, height = street["mapView"]
+        self.assertLessEqual(x, 63)
+        self.assertLessEqual(y, -2)
+        self.assertGreaterEqual(x + width, 87)
+        self.assertGreaterEqual(y + height, 277)
+        self.assertAlmostEqual(width / height, 5 / 4)
+
+    def test_curves_and_closed_external_roundabout_are_supported(self):
+        path = "M 49 79 C 49 72 39 72 39 79 C 39 86 49 86 49 79 Z"
+        street = build.build_streets([(1, ["Rotonda del Acebo", path])], [0, 0, 210, 297])[0]
+        self.assertEqual(street["mapPath"], path)
+
+    def test_short_streets_at_edges_keep_context_inside_the_map(self):
+        for path in ("M 46 8 L 72 8", "M 20 290 L 80 290", "M 205 200 L 205 250"):
+            with self.subTest(path=path):
+                street = build.build_streets([(1, ["Borde", path])], [0, 0, 210, 297])[0]
+                x, y, width, height = street["mapView"]
+                self.assertGreaterEqual(x, -12)
+                self.assertGreaterEqual(y, -12)
+                self.assertLessEqual(x + width, 222)
+                self.assertLessEqual(y + height, 309)
+
+    def test_malformed_svg_separators_are_rejected(self):
+        for path in ("M,20,30 L40,,50", "M 20 30, L40 50", "M 20 30 L 40 50,", "M 20 30 L 40,,50"):
+            with self.subTest(path=path):
+                with self.assertRaisesRegex(SystemExit, "trazado SVG inválido"):
+                    build.build_streets([(12, ["Prueba", path])], [0, 0, 210, 297])
+
+    def test_invalid_paths_fail_instead_of_silently_omitting_streets(self):
+        for path in ("", "M 20 30", "M 20 30 L 20 30", "L 20 30 L 40 50", "M 20 30 L 40", "M 20 30 Q 40 50", "M 20 30 A 3 3 0 0 1 40 50", "M 20 30 L NaN 50", "M 20 30 L 999 999", '<script>alert(1)</script>'):
+            with self.subTest(path=path):
+                with self.assertRaises(SystemExit):
+                    build.build_streets([(12, ["Prueba", path])], [0, 0, 210, 297])
+
+    def test_empty_names_duplicate_names_and_extra_columns_fail(self):
+        for rows in (
+            [(1, ["", "M 20 30 L 40 50"])],
+            [(1, ["Prueba", "M 20 30 L 40 50", "extra"])],
+            [(1, ["Cañada", "M 20 30 L 40 50"]), (2, ["CANADA", "M 20 30 L 40 50"])],
+        ):
+            with self.subTest(rows=rows):
+                with self.assertRaises(SystemExit):
+                    build.build_streets(rows, [0, 0, 210, 297])
+
+    def test_catalog_contains_requested_streets_and_police_references(self):
+        streets = build.build_streets(build.street_rows(build.read_tables()), [0, 0, 210, 297])
+        by_name = {street["name"]: street for street in streets}
+        self.assertEqual(set(by_name), {
+            "c/Cabo de Gata", "c/El Alquián", "c/La Cañada", "c/Barrio Alto",
+            "c/Los Almendros", "c/Piedras Redondas", "c/La Chanca-Pescadería",
+            "c/Paseo de Almería", "c/Paseo de la Feria", "c/Casco Histórico",
+            "c/Nueva Andalucía", "c/Ciudad Jardín", "c/500 viviendas-Tagarete",
+            "c/Galán de Noche", "c/Acebo", "Rotonda del Acebo",
+        })
+        self.assertEqual(by_name["c/Galán de Noche"]["mapPath"], by_name["c/Paseo de Almería"]["mapPath"])
+        # La rotonda señalada está al oeste de la puerta (x~60), no en A7 (x~76).
+        numbers = [float(value) for value in re.findall(r"-?\d+(?:\.\d+)?", by_name["Rotonda del Acebo"]["mapPath"])]
+        self.assertLess(max(numbers[::2]), 55)
+        self.assertGreater(min(numbers[1::2]), 65)
+        self.assertLess(max(numbers[1::2]), 90)
 
 
 class MinimapTests(unittest.TestCase):

@@ -13,9 +13,7 @@ activity_type -> Tipo de Actividad
 adress -> Indicacióm
 coords -> Coordenadas
 street -> Calle
-start -> Inicio
-end -> Fin
-waypoints -> Punto Intermedio
+map_path -> Trazado orientativo en unidades del SVG, sin GPS
 
 ## Atracciones
 
@@ -278,9 +276,31 @@ waypoints -> Punto Intermedio
 
 ## Calles
 
-Extremos de cada calle, para trazar su recorrido sobre el mapa. El nombre debe coincidir con el de la columna `adress` de las ubicaciones. La columna `waypoints` es opcional: puntos intermedios separados por `;`.
+Trazados orientativos sobre `src/minimap.svg`, en sus unidades de dibujo (no GPS).
+`map_path` admite órdenes SVG absolutas M, L, Q, C y Z, con sus parámetros completos
+separados por espacios (sin comas).
+Solo se muestran en la previsualización: sin pin, coordenadas copiables ni enlace a Maps.
+Las calles interiores siguen el plano arquitectónico. La Rotonda del Acebo es la
+exterior, frente a la puerta de Ciudad Jardín, señalada por el usuario el 28/08/2026;
+su contorno y conexión son esquemáticos, no una medición topográfica.
+Galán de Noche corresponde a Paseo de Almería; Acebo enlaza la rotonda exterior,
+Ciudad Jardín y Nueva Andalucía. Se conservan ambos nombres para buscarlos.
 
-"street, start, end, waypoints."
-
-| street | start | end | waypoints |
-| ------ | ----- | --- | --------- |
+| street | map_path |
+| ------ | -------- |
+| c/Cabo de Gata | M 79 210 L 149 210 |
+| c/El Alquián | M 75 177 L 140 177 |
+| c/La Cañada | M 76 114 L 120 114 |
+| c/Barrio Alto | M 41 241 L 74 241 |
+| c/Los Almendros | M 41 241 L 36 257 Q 33 265 43 265 L 60 265 Q 67 265 71 262 |
+| c/Piedras Redondas | M 50 210 L 41 241 |
+| c/La Chanca-Pescadería | M 99 148 L 99 267 |
+| c/Paseo de Almería | M 56 129 L 74 129 |
+| c/Paseo de la Feria | M 75 257 L 75 214 Q 69 209 75 204 L 76 81 Q 82 76 76 71 L 76 13 |
+| c/Casco Histórico | M 92 77 L 92 113 |
+| c/Nueva Andalucía | M 80 76 L 112 76 |
+| c/Ciudad Jardín | M 60 76 L 71 76 |
+| c/500 viviendas-Tagarete | M 46 8 L 72 8 |
+| c/Galán de Noche | M 56 129 L 74 129 |
+| c/Acebo | M 49 79 Q 54 76 60 76 L 71 76 Q 76 81 80 76 L 112 76 |
+| Rotonda del Acebo | M 49 79 C 49 72.3 39 72.3 39 79 C 39 85.7 49 85.7 49 79 Z |

@@ -11,7 +11,7 @@ Se admiten exactamente estos esquemas:
 ```text
 parcel | trade_name | legal_name | group | activity_type | coords
 parcel | name | group | coords
-street | start | end | waypoints
+street | map_path
 ```
 
 Un encabezado distinto, una fila con otro número de columnas o un grupo desconocido
@@ -47,7 +47,8 @@ Los diez valores admitidos en `group`, con su código de menú, son:
 
 El orden de esta tabla es también el orden del menú. Las diferencias de mayúsculas y
 tildes se normalizan para validar el valor, pero en `data.md` se conserva la escritura
-canónica anterior.
+canónica anterior. Se admite también `Accesos`, usado en el catálogo actual, como
+equivalente de `Acceso`, sin crear otro grupo.
 
 ## Nombre público y privacidad
 
@@ -84,9 +85,27 @@ HTML.
 
 ## Calles
 
-El esquema `street | start | end | waypoints` define recorridos opcionales. `start` y
-`end` son coordenadas `lat,lon`; `waypoints` admite puntos intermedios separados por `;`.
-Actualmente la tabla está vacía, así que la aplicación no publica recorridos.
+El esquema `street | map_path` define líneas orientativas en las unidades de dibujo
+del `viewBox` de `src/minimap.svg`. No son coordenadas GPS, rutas navegables ni nuevas
+ubicaciones. El esquema anterior de extremos GPS se ha retirado.
+
+`map_path` empieza por `M x y` y admite las órdenes absolutas `L x y`,
+`Q cx cy x y`, `C c1x c1y c2x c2y x y` y `Z`, siempre con sus parámetros completos,
+separados por espacios y sin comas.
+El build rechaza nombres vacíos o duplicados, órdenes incompletas, trazados sin longitud
+y puntos fuera del plano. Una tabla vacía no añade el grupo Calles.
+
+Las 13 calles solicitadas siguen el plano arquitectónico. Las referencias policiales
+se mantienen como entradas buscables: Galán de Noche coincide con Paseo de Almería;
+Acebo enlaza Ciudad Jardín y Nueva Andalucía con la rotonda exterior. La Rotonda del
+Acebo está fuera de la puerta de Ciudad Jardín, según la captura del usuario del
+28/08/2026, no en A7. Su contorno y el enlace exterior son esquemáticos.
+
+El encuadre contiene toda la línea con margen y mantiene, como mínimo, el contexto de
+una ficha de ubicación. En los bordes se desplaza el encuadre hacia el papel para
+aprovechar el contexto; una calle larga se ve más alejada, nunca recortada. Solo la
+calle seleccionada se resalta; las farolas siguen como referencias. Los nombres
+completos siguen disponibles en el detalle accesible del mapa y en la búsqueda.
 
 ## Coordenadas y validación
 

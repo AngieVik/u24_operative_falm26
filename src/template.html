@@ -84,6 +84,15 @@ body{
   color:var(--faint);pointer-events:none;
 }
 .field:focus-within .lead{color:var(--faint)}
+body.has-back .field .lead{display:none}
+#back{
+  position:absolute;left:2px;display:grid;place-items:center;
+  width:28px;height:28px;padding:0;border:0;border-radius:5px;
+  background:none;color:var(--accent);cursor:pointer;
+}
+#back[hidden]{display:none}
+#back .ico{width:20px;height:20px}
+#back:focus-visible{outline:1px solid #565B61;outline-offset:-1px}
 #q{
   display:block;width:100%;height:34px;
   padding:0 31px 0 32px;
@@ -141,7 +150,6 @@ ul{list-style:none;margin:0;padding:0}
 .farola-yellow{--farola-color:#FACC15}
 .row.expanded{background:rgba(255,255,255,.018)}
 .row.expanded.farola::before{top:19px}
-.row.back-row{display:block;min-height:38px;padding:0}
 .group-toggle{
   width:100%;padding:9px 0;margin:-9px 0;
   border:0;background:none;color:inherit;
@@ -151,12 +159,7 @@ ul{list-style:none;margin:0;padding:0}
 .go.group-map-disabled .pill{
   background:rgba(142,147,152,.08);border-color:rgba(142,147,152,.22)
 }
-.group-back{
-  display:block;width:100%;min-height:38px;margin:0;padding:0 12px;
-  border:0;background:none;color:var(--accent);font-family:inherit;
-  text-align:center;font-weight:700;cursor:pointer;
-}
-.group-toggle:focus-visible,.group-back:focus-visible{
+.group-toggle:focus-visible{
   outline:1px solid #565B61;outline-offset:-1px;border-radius:4px;
 }
 
@@ -239,6 +242,13 @@ ul{list-style:none;margin:0;padding:0}
 }
 .minimap-marker path{fill:#17212B;stroke:#FFF;stroke-width:2.4;stroke-linejoin:round}
 .minimap-marker circle{fill:var(--accent)}
+.minimap-street{
+  fill:none;stroke:#087DB5;stroke-width:3;vector-effect:non-scaling-stroke;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.minimap-street-halo{stroke:#FFF;stroke-width:6}
+.street-detail{margin-left:0;margin-right:0}
+.street-detail .minimap{margin-top:7px}
 @keyframes detail-in{
   from{opacity:0;transform:translateY(-4px)}
   to{opacity:1;transform:translateY(0)}
@@ -256,7 +266,7 @@ ul{list-style:none;margin:0;padding:0}
 }
 .pill .ico{width:14px;height:14px}
 
-/*La fila de calle se ve igual que las demás: lo que la distingue es su segunda línea y el icono de recorrido del botón.*/
+/*Las calles conservan la geometría de las filas, pero no enlazan a Maps.*/
 .go:active .pill{background:var(--accent);border-color:var(--accent);color:var(--bg)}
 .go:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
 
@@ -292,6 +302,9 @@ ul{list-style:none;margin:0;padding:0}
         <svg class="ico lead" viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="11" cy="11" r="7.5"/><path d="M20.5 20.5l-4.2-4.2"/>
         </svg>
+        <button id="back" type="button" aria-label="Volver a los grupos" hidden>
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg>
+        </button>
         <input id="q" type="text"
                autocomplete="off" autocorrect="off" autocapitalize="off"
                spellcheck="false" inputmode="search" enterkeyhint="search"
@@ -336,8 +349,8 @@ const TEXT = {
   approx: 'Quizá buscabas',
   emptyTitle: 'Sin coincidencias',
   emptyBody: 'Comprueba el nombre o la parcela.',
-  placeholder: 'Nombre o parcela',
-  route: 'Recorrido de la calle',
+  placeholder: 'Nombre, parcela o calle',
+  streets: 'Calles',
   parcel: 'Parcela',
   tradeName: 'Nombre comercial',
   legalName: 'Titular / razón social',
@@ -350,19 +363,16 @@ const TEXT = {
 /*Etiquetas para lectores de pantalla. No las dibuja la tipografía, así que no entran en la validación de cobertura de build.py.*/
 const LABEL = {
   open: 'Ver en el mapa ',
-  route: 'Ver el recorrido de la calle ',
   copy: 'Copiar coordenadas de ',
   copied: 'Coordenadas copiadas',
   openGroup: 'Abrir grupo ',
-  backToGroups: 'Volver a los grupos',
-  minimap: 'Ubicación orientativa en el recinto: '
+  minimap: 'Ubicación orientativa en el recinto: ',
+  streetMinimap: 'Trazado orientativo de '
 };
+if (STREETS.length) GROUPS.push({code:'CL', name:TEXT.streets});
 
 /*Ficha de lugar de Google Maps: mapa, punto exacto y accesos a «Cómo llegar» e «Iniciar» dentro de la propia app. Ver docs/03-navegacion-maps.md.*/
 const MAPS = 'https://www.google.com/maps/search/?api=1&query=';
-
-/*Trazado de una calle. Se le pide la ruta a pie entre los dos extremos a Google Maps: el camino que pinta es la calle.*/
-const MAPS_DIR = 'https://www.google.com/maps/dir/?api=1&travelmode=walking';
 
 /*lucide · map-pin — el destino es un punto en el mapa.*/
 const PIN_BODY = 'M20 10.4c0 5.6-8 11.6-8 11.6s-8-6-8-11.6a8 8 0 0 1 16 0Z';
@@ -394,6 +404,8 @@ const fuseStreets = STREETS.length
   : null;
 
 const q = document.getElementById('q');
+const back = document.getElementById('back');
+const main = document.querySelector('main');
 const list = document.getElementById('list');
 const empty = document.getElementById('empty');
 const meta = document.getElementById('meta');
@@ -418,21 +430,16 @@ function mapsUrl(loc){
   return MAPS + loc.lat + ',' + loc.lon;
 }
 
-function streetUrl(st){
-  const url = MAPS_DIR + '&origin=' + st.start + '&destination=' + st.end;
-  return st.waypoints.length ? url + '&waypoints=' + st.waypoints.join('|') : url;
-}
-
 /**
 * Filtra y ordena.
-* Devuelve { streets, exact, approx }: cada grupo viaja aparte porque en pantalla se presentan de forma distinta.
+* Separa calles y ubicaciones, tanto literales como aproximadas, para rotular las sugerencias.
 * Llevar la unidad a la ubicación equivocada es el fallo mas grave que esta aplicación puede cometer.
 * Consulta literal: empieza por, contiene, y contiene una vez aplanado.
 * Solo si nada de eso devuelve resultados se ofrecen aproximaciones.
 */
 function search(raw){
   const term = normalize(raw);
-  if (!term) return { streets: [], exact: LOCATIONS, approx: [] };
+  if (!term) return { streets: [], exact: LOCATIONS, approx: [], approxStreets: [] };
 
   const exact = [], prefix = [], contains = [];
 
@@ -440,7 +447,7 @@ function search(raw){
 
   const streets = term.length < STREET_MIN_TERM
     ? []
-    : STREETS.filter(st => st.flat.includes(flat));
+    : STREETS.filter(st => flat && st.flat.includes(flat));
 
   // Tercer nivel literal: sin espacios ni puntuación, para que un separador de más o de menos no deje la pantalla vacía.
   const loose = [];
@@ -453,7 +460,7 @@ function search(raw){
 
   const literal = prefix.concat(contains, loose);
   const nada = !literal.length && !streets.length;
-  if (!nada || term.length < FUZZY_MIN_TERM) return { streets, exact: literal, approx: [] };
+  if (!nada || term.length < FUZZY_MIN_TERM) return { streets, exact: literal, approx: [], approxStreets: [] };
 
   // Respaldo aproximado: también sobre las calles, no solo sobre los nombres.
   const approxStreets = fuseStreets
@@ -467,10 +474,11 @@ function search(raw){
     .slice(0, FUZZY_MAX_RESULTS)
     .map(r => r.item);
 
-  return { streets: approxStreets, exact: [], approx };
+  return { streets: [], exact: [], approx, approxStreets };
 }
 
 const unit = n => n + (n === 1 ? ' ubicación' : ' ubicaciones');
+const streetUnit = n => n + (n === 1 ? ' calle' : ' calles');
 
 /**Icono SVG de trazo a partir de una o varias rutas.*/
 function icon(cls, ...paths){
@@ -502,7 +510,9 @@ function minimap(loc){
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('viewBox', loc.mapView.join(' '));
   svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', LABEL.minimap + loc.name + ', ' + loc.label);
+  svg.setAttribute('aria-label', loc.mapPath
+    ? LABEL.streetMinimap + loc.name
+    : LABEL.minimap + loc.name + ', ' + loc.label);
 
   const image = document.createElementNS(NS, 'image');
   const [x, y, width, height] = MINIMAP.bounds;
@@ -512,6 +522,16 @@ function minimap(loc){
   image.setAttribute('height', height);
   image.setAttribute('href', MINIMAP.image);
   svg.append(image);
+
+  if (loc.mapPath){
+    // La calle solo se dibuja sobre el plano, sin convertirla en un destino GPS.
+    for (const cls of ['minimap-street minimap-street-halo', 'minimap-street']){
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('class', cls);
+      path.setAttribute('d', loc.mapPath);
+      svg.append(path);
+    }
+  }
 
   // Las referencias salen del mismo catálogo que la lista, no de otra tabla GPS.
   for (const reference of LOCATIONS){
@@ -533,18 +553,20 @@ function minimap(loc){
     svg.append(group);
   }
 
-  // La punta, no el centro del icono, coincide con las coordenadas del destino.
-  const marker = document.createElementNS(NS, 'g');
-  marker.setAttribute('class', 'minimap-marker');
-  marker.setAttribute('transform', 'translate(' + loc.mapPoint.join(' ') + ') scale(.45) translate(-12 -22)');
-  const pin = document.createElementNS(NS, 'path');
-  pin.setAttribute('d', PIN_BODY);
-  const center = document.createElementNS(NS, 'circle');
-  center.setAttribute('cx', '12');
-  center.setAttribute('cy', '10.2');
-  center.setAttribute('r', '3.5');
-  marker.append(pin, center);
-  svg.append(marker);
+  if (loc.mapPoint){
+    // La punta, no el centro del icono, coincide con las coordenadas del destino.
+    const marker = document.createElementNS(NS, 'g');
+    marker.setAttribute('class', 'minimap-marker');
+    marker.setAttribute('transform', 'translate(' + loc.mapPoint.join(' ') + ') scale(.45) translate(-12 -22)');
+    const pin = document.createElementNS(NS, 'path');
+    pin.setAttribute('d', PIN_BODY);
+    const center = document.createElementNS(NS, 'circle');
+    center.setAttribute('cx', '12');
+    center.setAttribute('cy', '10.2');
+    center.setAttribute('r', '3.5');
+    marker.append(pin, center);
+    svg.append(marker);
+  }
 
   const caption = document.createElement('figcaption');
   caption.textContent = TEXT.minimap;
@@ -556,6 +578,12 @@ function detail(loc){
   const panel = document.createElement('div');
   panel.className = 'detail';
   panel.id = 'detail-' + loc.id;
+
+  if (loc.mapPath){
+    panel.classList.add('street-detail');
+    panel.append(minimap(loc));
+    return panel;
+  }
 
   const fields = document.createElement('dl');
   fields.className = 'detail-fields';
@@ -638,7 +666,7 @@ function row(loc){
   pill.className = 'pill';
   pill.append(pinIcon());
 
-  // Único elemento pulsable de la fila.
+  // Único enlace externo de la fila; el nombre solo abre el detalle.
   const a = document.createElement('a');
   a.className = 'go';
   a.href = mapsUrl(loc);
@@ -684,22 +712,7 @@ function groupRow(group){
   return li;
 }
 
-function backRow(){
-  const li = document.createElement('li');
-  li.className = 'row back-row';
-  const button = document.createElement('button');
-  button.className = 'group-back';
-  button.type = 'button';
-  button.textContent = '...';
-  button.setAttribute('aria-label', LABEL.backToGroups);
-  li.append(button);
-  return li;
-}
-
-/**
-*Fila de calle. Va arriba, sin identificador en la columna de la izquierda —una calle no tiene número— y con el nombre en el color de acento, para que no se confunda con una ubicación sin número.
-El icono del botón es un recorrido y no un punto, porque lo que abre es un trazado.
-*/
+/**Calle desplegable: conserva las columnas, sin parcela ni enlace de ubicación.*/
 function streetRow(st){
   const li = document.createElement('li');
   li.className = 'row route';
@@ -707,32 +720,29 @@ function streetRow(st){
   const num = document.createElement('span');
   num.className = 'num';
 
-  const nom = document.createElement('span');
-  nom.className = 'nom';
+  const nom = document.createElement('button');
+  nom.className = 'nom detail-toggle';
+  nom.type = 'button';
   nom.textContent = st.name;
-
-  const sub = document.createElement('span');
-  sub.className = 'st';
-  sub.textContent = TEXT.route + ' · ' + unit(st.count);
+  nom.dataset.streetId = st.id;
+  nom.setAttribute('aria-expanded', 'false');
+  nom.setAttribute('aria-controls', 'detail-' + st.id);
 
   const txt = document.createElement('span');
   txt.className = 'txt';
-  txt.append(nom, sub);
+  txt.append(nom);
 
   const pill = document.createElement('span');
   pill.className = 'pill';
   pill.append(icon('ico', ROUTE_LINE, 'M6 16.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z',
                     'M18 2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z'));
 
-  const a = document.createElement('a');
-  a.className = 'go';
-  a.href = streetUrl(st);
-  a.target = '_blank';
-  a.rel = 'noopener noreferrer';
-  a.setAttribute('aria-label', LABEL.route + st.name);
-  a.append(pill);
+  const disabledMap = document.createElement('span');
+  disabledMap.className = 'go group-map-disabled';
+  disabledMap.setAttribute('aria-hidden', 'true');
+  disabledMap.append(pill);
 
-  li.append(num, txt, a);
+  li.append(num, txt, disabledMap);
   return li;
 }
 
@@ -745,26 +755,30 @@ function separator(){
 }
 
 function render(result){
+  setHeaderBack(true);
   const frag = document.createDocumentFragment();
   for (const st of result.streets) frag.append(streetRow(st));
   for (const loc of result.exact) frag.append(row(loc));
-  if (result.approx.length){
+  if (result.approx.length || result.approxStreets.length){
     frag.append(separator());
+    for (const street of result.approxStreets) frag.append(streetRow(street));
     for (const loc of result.approx) frag.append(row(loc));
   }
   list.replaceChildren(frag);
 
-  const total = result.streets.length + result.exact.length + result.approx.length;
+  const total = result.streets.length + result.exact.length + result.approx.length + result.approxStreets.length;
   empty.hidden = total > 0;
 
-  meta.textContent = total === 0
-    ? TEXT.emptyTitle
-    : result.approx.length
-      ? unit(result.approx.length) + ' ' + TEXT.approx.toLowerCase()
-      : unit(result.exact.length + result.streets.length);
+  const counts = [];
+  if (result.streets.length) counts.push(streetUnit(result.streets.length));
+  if (result.exact.length) counts.push(unit(result.exact.length));
+  if (result.approxStreets.length) counts.push(streetUnit(result.approxStreets.length) + ' ' + TEXT.approx.toLowerCase());
+  if (result.approx.length) counts.push(unit(result.approx.length) + ' ' + TEXT.approx.toLowerCase());
+  meta.textContent = counts.join(' · ') || TEXT.emptyTitle;
 }
 
 function renderGroups(){
+  setHeaderBack(false);
   const frag = document.createDocumentFragment();
   for (const group of GROUPS) frag.append(groupRow(group));
   list.replaceChildren(frag);
@@ -773,17 +787,25 @@ function renderGroups(){
 }
 
 function renderGroup(groupCode){
+  setHeaderBack(true);
   const locations = LOCATIONS.filter(loc => loc.menuCode === groupCode);
+  const streets = groupCode === 'CL' ? STREETS : [];
   const frag = document.createDocumentFragment();
   for (const loc of locations) frag.append(row(loc));
-  frag.append(backRow());
+  for (const street of streets) frag.append(streetRow(street));
   list.replaceChildren(frag);
   empty.hidden = true;
-  meta.textContent = unit(locations.length);
+  meta.textContent = streets.length ? streetUnit(streets.length) : unit(locations.length);
+}
+
+function setHeaderBack(visible){
+  back.hidden = !visible;
+  body.classList.toggle('has-back', visible);
 }
 
 function update(){
   closeDetail({restoreFocus:false});
+  main.scrollTop = 0;
   const v = q.value;
   body.classList.toggle('has-query', v.length > 0);
   if (!normalize(v)){
@@ -820,19 +842,16 @@ list.addEventListener('click', e => {
     closeDetail({restoreFocus:false});
     activeGroup = group.dataset.group;
     renderGroup(activeGroup);
-    return;
-  }
-  const back = e.target.closest('.group-back');
-  if (back){
-    closeDetail({restoreFocus:false});
-    activeGroup = null;
-    renderGroups();
+    main.scrollTop = 0;
+    back.focus({preventScroll:true});
     return;
   }
   const toggle = e.target.closest('.detail-toggle');
   if (toggle){
     const li = toggle.closest('.row');
-    const loc = LOCATIONS.find(item => item.id === toggle.dataset.locationId);
+    const loc = toggle.dataset.streetId
+      ? STREETS.find(item => item.id === toggle.dataset.streetId)
+      : LOCATIONS.find(item => item.id === toggle.dataset.locationId);
     if (li && loc) openDetail(li, toggle, loc);
     return;
   }
@@ -858,6 +877,16 @@ document.addEventListener('keydown', e => {
 
 q.addEventListener('input', update);
 q.addEventListener('search', update);
+back.addEventListener('click', () => {
+  const previousGroup = activeGroup;
+  activeGroup = null;
+  q.value = '';
+  update();
+  const group = previousGroup
+    ? list.querySelector('[data-group="' + previousGroup + '"]')
+    : list.querySelector('.group-toggle');
+  if (group) group.focus({preventScroll:true});
+});
 document.getElementById('clear').addEventListener('click', () => {
   q.value = '';
   update();

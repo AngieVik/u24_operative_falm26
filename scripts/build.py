@@ -67,9 +67,6 @@ FAR_AWAY_KM = 25     # detiene el proceso
 OUTLIER_FACTOR = 4   # avisa, si ademas supera el minimo de abajo
 OUTLIER_MIN_M = 500
 
-# Longitud de calle habitual, en metros. Solo para avisar.
-STREET_LENGTH_USUAL = (20, 5000)
-
 COORDS_RE = re.compile(r"^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$")
 FAROLA_LABEL_RE = re.compile(r"^[A-D]\d+$")
 SECTION_RE = re.compile(r"^#{1,6}\s+(.*)$")
@@ -84,7 +81,7 @@ BUSINESS_HEADERS = (
     "coords",
 )
 GENERAL_HEADERS = ("parcel", "name", "group", "coords")
-STREET_HEADERS = ("street", "start", "end", "waypoints")
+STREET_HEADERS = ("street", "map_path")
 LOCATION_HEADERS = {BUSINESS_HEADERS, GENERAL_HEADERS}
 SUPPORTED_HEADERS = LOCATION_HEADERS | {STREET_HEADERS}
 
@@ -121,6 +118,7 @@ NAVIGATION_BY_SOURCE = {
     source: (code, name)
     for code, name, source in NAVIGATION_GROUPS
 }
+NAVIGATION_BY_SOURCE["accesos"] = NAVIGATION_BY_SOURCE["acceso"]
 
 # Bloque de textos visibles de la plantilla y cadenas que contiene.
 UI_TEXT_RE = re.compile(r"const TEXT = \{(.*?)\n\};", re.S)
@@ -369,65 +367,67 @@ def compact_label(label):
     return label
 
 
-def build_streets(rows, centro):
-    """Calles con sus dos extremos. La seccion puede estar vacia."""
-    streets, incompletas, avisos, vistas = [], [], [], set()
+def build_streets(rows, bounds):
+    """Trazados orientativos en unidades SVG, sin destino ni coordenadas GPS."""
+    streets, seen = [], set()
+    left, top, full_width, full_height = bounds
+    number = r"-?\d+(?:\.\d+)?"
+    token = re.compile(rf"[MLQCZ]|{number}")
+    arity = {"M": 2, "L": 2, "Q": 4, "C": 6, "Z": 0}
 
     for lineno, cells in rows:
-        if len(cells) not in (3, 4):
-            fail(f"data.md linea {lineno}: se esperaban 3 o 4 columnas, hay {len(cells)}")
+        if len(cells) != 2:
+            fail(f"data.md linea {lineno}: se esperaban 2 columnas, hay {len(cells)}")
+        name, path = (cell.strip() for cell in cells)
+        if not name or normalize(name) in seen:
+            fail(f"data.md linea {lineno}: nombre de calle vacío o repetido: {name!r}")
+        seen.add(normalize(name))
 
-        name, start, end = cells[0], cells[1], cells[2]
-        waypoints = cells[3] if len(cells) == 4 else ""
+        # Un subconjunto explícito de SVG evita aceptar sintaxis incompleta,
+        # enlaces o fragmentos HTML. Cada orden lleva todos sus parámetros.
+        tokens = token.findall(path)
+        residue = token.sub("", path)
+        if not tokens or tokens[0] != "M" or residue.strip():
+            fail(f"data.md linea {lineno}: trazado SVG inválido para {name!r}")
+        points, index, drawn = [], 0, False
+        while index < len(tokens):
+            command = tokens[index]
+            size = arity.get(command)
+            if size is None or (command == "M" and index != 0):
+                fail(f"data.md linea {lineno}: orden SVG inválida en {name!r}")
+            values = tokens[index + 1:index + 1 + size]
+            if len(values) != size or any(not re.fullmatch(number, value) for value in values):
+                fail(f"data.md linea {lineno}: orden SVG incompleta en {name!r}")
+            points.extend(zip(map(float, values[::2]), map(float, values[1::2])))
+            drawn |= command in ("L", "Q", "C")
+            index += size + 1
+        if not drawn or len(set(points)) < 2:
+            fail(f"data.md linea {lineno}: trazado sin longitud en {name!r}")
+        if any(not (left <= x <= left + full_width and top <= y <= top + full_height) for x, y in points):
+            fail(f"data.md linea {lineno}: trazado fuera del plano en {name!r}")
 
-        if name in vistas:
-            fail(f"data.md linea {lineno}: la calle {name!r} esta repetida")
-        vistas.add(name)
-
-        if not start or not end:
-            incompletas.append(name)
-            continue
-
-        lat1, lon1 = parse_point(start, f"linea {lineno}, inicio", centro)
-        lat2, lon2 = parse_point(end, f"linea {lineno}, fin", centro)
-        if (lat1, lon1) == (lat2, lon2):
-            fail(f"data.md linea {lineno}: inicio y fin son el mismo punto")
-
-        largo = haversine((float(lat1), float(lon1)), (float(lat2), float(lon2)))
-        if not STREET_LENGTH_USUAL[0] <= largo <= STREET_LENGTH_USUAL[1]:
-            avisos.append(f"{name}: {largo:.0f} m entre extremos, comprueba las coordenadas")
-
-        puntos = []
-        for i, punto in enumerate(p.strip() for p in waypoints.split(";") if p.strip()):
-            plat, plon = parse_point(
-                punto, f"linea {lineno}, punto intermedio {i + 1}", centro
-            )
-            puntos.append(f"{plat},{plon}")
-
-        streets.append(
-            {
-                "name": name,
-                "search": normalize(name),
-                "flat": flatten(name),
-                "start": f"{lat1},{lon1}",
-                "end": f"{lat2},{lon2}",
-                "waypoints": puntos,
-                "count": 0,
-                "length": round(largo),
-            }
-        )
-
-    return streets, incompletas, avisos
-
-
-def parse_point(value, donde, centro):
-    match = COORDS_RE.match(value)
-    if not match:
-        fail(f"data.md {donde}: coordenadas invalidas {value!r}")
-    d = haversine((float(match.group(1)), float(match.group(2))), centro)
-    if d > FAR_AWAY_KM * 1000:
-        fail(f"data.md {donde}: {value} esta a {d / 1000:.0f} km de las ubicaciones")
-    return match.group(1), match.group(2)
+        xs, ys = zip(*points)
+        # También contiene los controles de las curvas. Nunca recorta una calle
+        # larga ni aumenta el zoom sobre una calle corta respecto a las fichas.
+        width = max(150, max(xs) - min(xs) + 24, (max(ys) - min(ys) + 24) * 5 / 4)
+        height = width * 4 / 5
+        x = (min(xs) + max(xs) - width) / 2
+        y = (min(ys) + max(ys) - height) / 2
+        if width <= full_width + 24:
+            x = max(left - 12, min(x, left + full_width + 12 - width))
+        if height <= full_height + 24:
+            y = max(top - 12, min(y, top + full_height + 12 - height))
+        view = [x, y, width, height]
+        searchable = name + " calle calles"
+        streets.append({
+            "id": f"street-{len(streets):03d}",
+            "name": name,
+            "search": normalize(searchable),
+            "flat": flatten(searchable),
+            "mapPath": path,
+            "mapView": [round(value, 3) for value in view],
+        })
+    return streets
 
 
 # ── Validaciones ──────────────────────────────────────────────────────────────
@@ -707,11 +707,9 @@ def main():
     check_unique_coordinates(locations)
     centro, mediana, raros = check_coherence(locations)
 
-    filas_calles = street_rows(tables)
-    streets, sin_coords, avisos = build_streets(filas_calles, centro)
-
-    n_chars = check_charset(locations, streets, template)
     minimap = build_minimap(locations)
+    streets = build_streets(street_rows(tables), minimap["bounds"])
+    n_chars = check_charset(locations, streets, template)
 
     markers = ["__LOCATIONS__", "__STREETS__", "__MINIMAP__", "__OPERATIVO__", "__LOGO__", "__FUSE__"]
     markers += [f"__FONT_{w}__" for w in FONT_WEIGHTS]
@@ -746,34 +744,23 @@ def main():
         centro,
         mediana,
         raros,
-        avisos,
-        sin_coords,
         vendor,
         n_chars,
         n_refs,
     )
 
 
-def report(locations, streets, centro, mediana, raros, avisos, sin_coords,
+def report(locations, streets, centro, mediana, raros,
            vendor, n_chars, n_refs):
-    calles = sorted({loc["street"] for loc in locations if loc["street"]})
     total = sum(f.stat().st_size for f in DIST.rglob("*") if f.is_file())
     n_files = sum(1 for f in DIST.rglob("*") if f.is_file())
     digest = hashlib.sha256(DATA.read_bytes()).hexdigest()[:8]
 
     print(f"OK  {len(locations)} ubicaciones -> {OUTPUT.relative_to(ROOT)}")
     print(f"    {OPERATIVO} · {date.today():%d.%m.%y} · data.md {digest}")
-    print(f"    {len(calles)} calles configuradas")
+    print(f"    {len(streets)} calles orientativas, sin enlace GPS")
     print(f"    centro {centro[0]:.6f},{centro[1]:.6f} · mediana al centro {mediana:.0f} m")
 
-    if streets:
-        detalle = ", ".join(f"{s['name']} ({s['length']} m)" for s in streets)
-        print(f"    trazado en {len(streets)}: {detalle}")
-
-    if sin_coords:
-        print(f"    AVISO  calles sin coordenadas, no se publican: {', '.join(sin_coords)}")
-    for aviso in avisos:
-        print(f"    AVISO  {aviso}")
     for d, loc in raros:
         print(
             f"    AVISO  {loc['name']} esta a {d:.0f} m del centro,"

@@ -21,7 +21,8 @@ añadas una columna solamente a determinadas filas.
 
 Los valores canónicos son: `Atracciones`, `Habilidad`, `Casetas`, `Restauración`,
 `Bebidas Espirituosas`, `Repostería`, `Puntos de Interes`, `Aseos Publicos`, `Acceso` y
-`Puntos de Referencia`. Su correspondencia con los códigos del menú está documentada en
+`Puntos de Referencia`. También se admite `Accesos` como equivalente de `Acceso`.
+Su correspondencia con los códigos del menú está documentada en
 `docs/02-datos.md`.
 
 No crees un grupo para una subcategoría: usa `activity_type` para distinguir, por ejemplo,
@@ -75,11 +76,14 @@ No requiere librerías, teselas, API ni descargas adicionales al abrir un detall
 El encabezado es:
 
 ```text
-street | start | end | waypoints
+street | map_path
 ```
 
-La tabla puede quedar vacía. Si se completa, `start` y `end` son obligatorios y
-`waypoints` contiene puntos intermedios separados por `;`.
+La tabla puede quedar vacía. Cada fila contiene el nombre y una línea SVG absoluta
+(`M`, `L`, `Q`, `C`, `Z`) dentro del plano; consulta `docs/02-datos.md` para la sintaxis.
+No añadas coordenadas GPS ni destinos de Maps: estas entradas solo se previsualizan.
+Si cambias el plano, revisa también estos trazados. La rotonda exterior del Acebo y
+su conexión son referencias esquemáticas confirmadas visualmente por el usuario.
 
 ## Verificar y compilar
 
@@ -98,8 +102,8 @@ python -m http.server 4173 --directory dist
 
 Comprueba al menos:
 
-1. menú inicial con diez grupos, códigos correctos y pines grises;
-2. entrada en cada grupo y vuelta mediante `...`;
+1. menú inicial con diez grupos de ubicaciones más Calles, códigos correctos y pines grises;
+2. entrada en cada grupo y vuelta mediante la flecha de la cabecera, sin fila `...`;
 3. búsqueda por todas las parcelas de una fila agrupada;
 4. búsqueda por actividad y grupo;
 5. ausencia de nombres personales en la lista y la búsqueda;
@@ -108,7 +112,10 @@ Comprueba al menos:
 8. plano legible en pantalla estrecha, con pin correcto en centro y extremos;
 9. scroll sobre el minimapa sin mover la cabecera ni desplazar el plano;
 10. recarga sin conexión después de una primera carga completa, abriendo detalles
-    que no se hubieran consultado antes.
+    que no se hubieran consultado antes;
+11. calles buscables por los nombres de feria y policiales, con su trazado completo
+    sin pin, coordenadas copiables ni enlace GPS; rotonda exterior al oeste de la puerta;
+12. flecha estable durante el scroll y retorno desde búsqueda al menú con la consulta vacía.
 
 ## Tipografía, operativo y publicación
 
